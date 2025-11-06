@@ -21,6 +21,7 @@ namespace MasterYourEnglish.DAL.Repositories
         {
             return await _dbSet
                 .Where(t => t.TopicId == topicId && t.IsPublished)
+                .Include(t => t.Topic)
                 .OrderBy(t => t.Title)
                 .ToListAsync();
         }
@@ -42,6 +43,15 @@ namespace MasterYourEnglish.DAL.Repositories
                         .ThenInclude(q => q.QuestionOptions) 
                 .FirstAsync(t => t.TestId == testId);
         }
-    
+
+        public async Task<IEnumerable<Test>> GetPublishedTestsWithTopicAsync()
+        {
+            return await _dbSet
+                .Where(t => t.IsPublished)
+                .Include(t => t.Topic) 
+                .OrderBy(t => t.Title)
+                .ToListAsync();
+        }
+
     }
 }
