@@ -16,7 +16,12 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\MasterYourEnglish.BLL\MasterYourEnglish.BLL.csproj" />
+    <Page Include="Styles\Theme.Dark.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Styles\Theme.Light.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
   </ItemGroup>
 
 </Project>
