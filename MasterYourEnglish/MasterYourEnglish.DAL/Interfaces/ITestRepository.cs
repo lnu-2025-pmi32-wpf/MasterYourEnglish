@@ -9,6 +9,6 @@ namespace MasterYourEnglish.DAL.Interfaces
         Task<Test> GetTestWithDetailsAsync(int testId);
         Task<IEnumerable<Test>> GetTestsCreatedByUserAsync(int userId);
         Task<IEnumerable<Test>> GetPublishedTestsWithTopicAsync();
-
+        Task<IEnumerable<Test>> GetPublishedTestsWithDetailsAsync();
     }
 }

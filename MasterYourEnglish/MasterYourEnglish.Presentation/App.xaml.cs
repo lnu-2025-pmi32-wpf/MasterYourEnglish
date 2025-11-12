@@ -49,6 +49,7 @@ namespace MasterYourEnglish.Presentation
             services.AddTransient<ITestService, TestService>();
             services.AddTransient<IUserService, UserService>();
             services.AddSingleton<ICurrentUserService, CurrentUserService>();
+            services.AddTransient<IFlashcardBundleService, FlashcardBundleService>();
 
             services.AddTransient<MainViewModel>();
             services.AddTransient<SidebarViewModel>();

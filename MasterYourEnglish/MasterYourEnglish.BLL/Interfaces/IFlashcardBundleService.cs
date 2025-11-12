@@ -4,6 +4,6 @@ namespace MasterYourEnglish.BLL.Interfaces
 {
     public interface IFlashcardBundleService
     {
-        Task<IEnumerable<FlashcardBundleCardDto>> GetPublishedBundlesAsync(string sortBy, bool ascending);
+        Task<IEnumerable<FlashcardBundleCardDto>> GetPublishedBundlesAsync(string searchTerm, string sortBy, bool ascending);
     }
 }

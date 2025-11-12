@@ -10,6 +10,8 @@ namespace MasterYourEnglish.BLL.Models.DTOs
     {
         public int BundleId { get; set; }
         public string CategoryName { get; set; } = "";
+        public string Description { get; set; } = "";
         public string BundleName { get; set; } = "";
+        public string DifficultyLevel { get; set; } = "";
     }
 }

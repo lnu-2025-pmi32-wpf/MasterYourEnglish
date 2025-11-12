@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading.Tasks;
 
 namespace MasterYourEnglish.Presentation.ViewModels
 {
@@ -32,7 +33,6 @@ namespace MasterYourEnglish.Presentation.ViewModels
             FlashcardSessionViewModel sessionVm)
         {
             SidebarVm = sidebarViewModel;
-
             _profileVm = profileVm;
             _flashcardsVm = flashcardsVm;
             _testListVm = testListVm;
@@ -43,43 +43,50 @@ namespace MasterYourEnglish.Presentation.ViewModels
 
             SidebarVm.NavigationRequested += OnNavigationRequested;
             _flashcardsVm.NavigationRequested += OnNavigationRequested;
+
             CurrentViewModel = _profileVm;
+            LoadPageData(CurrentViewModel);
         }
 
         private void OnNavigationRequested(string navigationKey)
         {
+            ViewModelBase newPage = CurrentViewModel; 
+
             if (navigationKey.StartsWith("FlashcardSession:"))
             {
                 var idString = navigationKey.Split(':')[1];
                 if (int.TryParse(idString, out int bundleId))
                 {
                     _sessionVm.LoadSession(bundleId);
-                    CurrentViewModel = _sessionVm;
+                    newPage = _sessionVm;
                 }
             }
             else
             {
                 switch (navigationKey)
                 {
-                    case "Profile":
-                        CurrentViewModel = _profileVm;
-                        break;
-                    case "Flashcards":
-                        CurrentViewModel = _flashcardsVm;
-                        break;
-                    case "Tests":
-                        CurrentViewModel = _testListVm;
-                        break;
-                    case "Statistics":
-                        CurrentViewModel = _statsVm;
-                        break;
-                    case "Settings":
-                        CurrentViewModel = _settingsVm;
-                        break;
-                    case "SavedFlashcards":
-                        CurrentViewModel = _savedVm;
-                        break;
+                    case "Profile": newPage = _profileVm; break;
+                    case "Flashcards": newPage = _flashcardsVm; break;
+                    case "Tests": newPage = _testListVm; break;
+                    case "Statistics": newPage = _statsVm; break;
+                    case "Settings": newPage = _settingsVm; break;
+                    case "SavedFlashcards": newPage = _savedVm; break;
                 }
+            }
+
+            if (newPage != CurrentViewModel)
+            {
+                CurrentViewModel = newPage;
+
+                LoadPageData(CurrentViewModel);
+            }
+        }
+
+        private async void LoadPageData(ViewModelBase vm)
+        {
+            if (vm is IPageViewModel page)
+            {
+                await page.LoadDataAsync();
             }
         }
     }

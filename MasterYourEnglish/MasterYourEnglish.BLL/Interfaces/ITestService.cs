@@ -6,5 +6,6 @@ namespace MasterYourEnglish.BLL.Interfaces
     {
         Task<IEnumerable<TestCardDto>> GetPublishedTestsForDashboardAsync();
         Task<IEnumerable<TestCardDto>> GetPublishedTestsByTopicAsync(int topicId);
+        Task<IEnumerable<TestCardDto>> GetPublishedTestsAsync(string searchTerm, string sortBy, bool ascending);
     }
 }
