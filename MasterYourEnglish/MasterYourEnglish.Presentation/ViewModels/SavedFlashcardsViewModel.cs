@@ -16,6 +16,7 @@ namespace MasterYourEnglish.Presentation.ViewModels
         private readonly ICurrentUserService _currentUserService;
         private bool _isLoading = false;
 
+        public event Action<string> NavigationRequested;
         public ObservableCollection<SavedFlashcardDto> SavedFlashcards { get; }
 
         private SavedFlashcardDto _selectedFlashcard;
@@ -48,9 +49,9 @@ namespace MasterYourEnglish.Presentation.ViewModels
             }
         }
 
-        // --- Commands ---
         public ICommand MarkAsLearnedCommand { get; }
         public ICommand RemoveFromSavedCommand { get; }
+        public ICommand StartTestYourselfCommand { get; }
 
         public SavedFlashcardsViewModel(IFlashcardService flashcardService, ICurrentUserService currentUserService)
         {
@@ -64,6 +65,9 @@ namespace MasterYourEnglish.Presentation.ViewModels
 
             MarkAsLearnedCommand = new RelayCommand(p => OnMarkAsLearned(), p => SelectedFlashcard != null);
             RemoveFromSavedCommand = new RelayCommand(p => OnRemoveFromSaved(), p => SelectedFlashcard != null);
+            StartTestYourselfCommand = new RelayCommand(
+                p => NavigationRequested?.Invoke("TestSavedFlashcards")
+            );
         }
 
         public async Task LoadDataAsync()

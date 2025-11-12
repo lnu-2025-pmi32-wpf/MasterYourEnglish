@@ -11,6 +11,7 @@
 
     <UserControl.Resources>
 
+
         <Style x:Key="DifficultyTagText" TargetType="TextBlock">
             <Setter Property="Foreground" Value="White"/>
             <Setter Property="FontWeight" Value="Bold"/>
@@ -40,12 +41,10 @@
                                 BorderBrush="{TemplateBinding BorderBrush}"
                                 BorderThickness="{TemplateBinding BorderThickness}"
                                 CornerRadius="5">
-
                             <ContentPresenter Margin="15"
                                               VerticalAlignment="Top"
                                               HorizontalAlignment="Left"/>
                         </Border>
-
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
                                 <Setter TargetName="CardBorder" Property="Background"
@@ -58,7 +57,6 @@
                 </Setter.Value>
             </Setter>
         </Style>
-
         <Style x:Key="DetailPanelStyle" TargetType="Grid">
             <Setter Property="Visibility" Value="Visible"/>
             <Style.Triggers>
@@ -67,6 +65,16 @@
                 </DataTrigger>
             </Style.Triggers>
         </Style>
+
+        <Style TargetType="Button" x:Key="ActionButtonStyle">
+            <Setter Property="FontSize" Value="16"/>
+            <Setter Property="Padding" Value="10,5"/>
+            <Setter Property="Background" Value="{DynamicResource Accent.PrimaryBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource Text.OnAccentBrush}"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="BorderThickness" Value="0"/>
+        </Style>
+
     </UserControl.Resources>
 
     <Grid Margin="30">
@@ -85,10 +93,11 @@
 
         <Grid Grid.Row="1" Margin="0,-10,0,10">
             <Button Style="{StaticResource CardButtonStyle}" 
-                    HorizontalAlignment="Left">
+            HorizontalAlignment="Left"
+            Command="{Binding StartTestYourselfCommand}">
                 <StackPanel>
                     <TextBlock Text="Test yourself" FontSize="20" FontWeight="SemiBold" TextWrapping="Wrap"/>
-                    <TextBlock Text="Generate a test based on your saved flashcards." FontSize="14" TextWrapping="Wrap" Margin="0,10,0,0"/>
+                    <TextBlock Text="Generate a test from your saved flashcards." FontSize="14" TextWrapping="Wrap" Margin="0,10,0,0"/>
                 </StackPanel>
             </Button>
         </Grid>
@@ -99,18 +108,15 @@
                 <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
-
             <TextBox Grid.Column="0" Text="{Binding SearchTerm, UpdateSourceTrigger=PropertyChanged}" 
                      FontSize="16" Padding="5"
                      MaxWidth="500" HorizontalAlignment="Left" MinWidth="400"
                      VerticalAlignment="Center"/>
-
             <ComboBox Grid.Column="1" 
                       ItemsSource="{Binding SortOptions}"
                       SelectedItem="{Binding SelectedSortOption}"
                       FontSize="16" Padding="5"
                       Margin="10,0,10,0" MinWidth="150" VerticalAlignment="Center"/>
-
             <Button Grid.Column="2" Content="Filter" FontSize="16" Padding="10,5"
                     MinWidth="100" VerticalAlignment="Center"/>
         </Grid>
@@ -120,7 +126,6 @@
                 <ColumnDefinition Width="400"/>
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
-
             <ListView Grid.Column="0" Margin="10,0,0,0"
                       ItemsSource="{Binding SavedFlashcards}"
                       SelectedItem="{Binding SelectedFlashcard}"
@@ -136,6 +141,7 @@
                         <Setter Property="Background" Value="{DynamicResource Sidebar.BackgroundBrush}"/>
                         <Setter Property="BorderBrush" Value="{DynamicResource Border.PrimaryBrush}"/>
                         <Setter Property="BorderThickness" Value="0,0,0,1"/>
+                        <Setter Property="Foreground" Value="{DynamicResource Text.PrimaryBrush}"/>
                         <Style.Triggers>
                             <Trigger Property="IsSelected" Value="True">
                                 <Setter Property="Background" Value="{DynamicResource Accent.PrimaryBrush}"/>
@@ -149,26 +155,30 @@
             <Grid Grid.Column="1" Margin="40,10,10,10" 
                   Style="{StaticResource DetailPanelStyle}">
                 <StackPanel>
+                    <!-- (Details panel is unchanged) -->
                     <StackPanel Orientation="Horizontal">
                         <TextBlock Text="{Binding SelectedFlashcard.Word}" FontSize="24" FontWeight="Bold"/>
-                        <Border Style="{StaticResource DifficultyTagStyle}">
+                        <Border Style="{StaticResource DifficultyTagStyle}" Margin="10,0,0,0">
                             <TextBlock Text="{Binding SelectedFlashcard.Difficulty}" Style="{StaticResource DifficultyTagText}"/>
                         </Border>
                     </StackPanel>
                     <TextBlock Text="{Binding SelectedFlashcard.PartOfSpeech}" FontSize="16" FontStyle="Italic" Margin="0,5,0,0"/>
                     <TextBlock Text="{Binding SelectedFlashcard.Transcription}" FontSize="16" Foreground="Gray" Margin="0,5,0,0"/>
-
                     <TextBlock Text="Meaning" FontSize="14" FontWeight="Bold" Margin="0,20,0,5"/>
                     <TextBlock Text="{Binding SelectedFlashcard.Meaning}" FontSize="16" TextWrapping="Wrap"/>
-
                     <TextBlock Text="Example" FontSize="14" FontWeight="Bold" Margin="0,20,0,5"/>
                     <TextBlock Text="{Binding SelectedFlashcard.Example}" FontSize="16" TextWrapping="Wrap"/>
 
+                    <!-- 
+                      FIX #2: Applying the new style to your buttons
+                    -->
                     <StackPanel Orientation="Horizontal" Margin="0,30,0,0">
                         <Button Content="Mark as Learned" 
-                                Command="{Binding MarkAsLearnedCommand}"/>
+                                Command="{Binding MarkAsLearnedCommand}"
+                                Style="{StaticResource ActionButtonStyle}"/>
                         <Button Content="Remove from Saved" Margin="10,0,0,0" 
-                                Command="{Binding RemoveFromSavedCommand}"/>
+                                Command="{Binding RemoveFromSavedCommand}"
+                                Style="{StaticResource ActionButtonStyle}"/>
                     </StackPanel>
                 </StackPanel>
             </Grid>

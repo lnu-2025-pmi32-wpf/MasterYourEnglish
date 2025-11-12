@@ -12,34 +12,20 @@ namespace MasterYourEnglish.Presentation.ViewModels
     public class FlashcardSessionViewModel : ViewModelBase
     {
         private readonly IFlashcardBundleService _bundleService;
-        private readonly IFlashcardService _flashcardService; 
+        private readonly IFlashcardService _flashcardService;
         private readonly ICurrentUserService _currentUserService;
 
         private List<FlashcardSessionDto> _sessionCards;
         private Dictionary<int, bool> _results;
         private int _currentIndex;
-        private int _bundleId;
-
+        private int _bundleId; 
         private bool _isFlipped;
-        public bool IsFlipped
-        {
-            get => _isFlipped;
-            set => SetProperty(ref _isFlipped, value);
-        }
-
+        public bool IsFlipped { get => _isFlipped; set => SetProperty(ref _isFlipped, value); }
         private FlashcardSessionDto _currentFlashcard;
-        public FlashcardSessionDto CurrentFlashcard
-        {
-            get => _currentFlashcard;
-            set => SetProperty(ref _currentFlashcard, value);
-        }
-
+        public FlashcardSessionDto CurrentFlashcard { get => _currentFlashcard; set => SetProperty(ref _currentFlashcard, value); }
         private string _progressText;
-        public string ProgressText
-        {
-            get => _progressText;
-            set => SetProperty(ref _progressText, value);
-        }
+        public string ProgressText { get => _progressText; set => SetProperty(ref _progressText, value); }
+
 
         public event Action<string> NavigationRequested;
         public ICommand FlipCardCommand { get; }
@@ -68,12 +54,23 @@ namespace MasterYourEnglish.Presentation.ViewModels
         public async void LoadSession(int bundleId)
         {
             _bundleId = bundleId;
-
             _sessionCards = await _bundleService.GetFlashcardSessionAsync(bundleId);
+            StartSession();
+        }
 
+        public async void LoadSessionFromSaved()
+        {
+            _bundleId = 0;
+            int userId = _currentUserService.CurrentUser.UserId;
+            _sessionCards = await _flashcardService.GetSavedFlashcardsForSessionAsync(userId);
+            StartSession();
+        }
+
+        private void StartSession()
+        {
             if (_sessionCards == null || _sessionCards.Count == 0)
             {
-                NavigationRequested?.Invoke("Flashcards");
+                NavigationRequested?.Invoke("Flashcards"); 
                 return;
             }
 
@@ -98,7 +95,7 @@ namespace MasterYourEnglish.Presentation.ViewModels
 
         private void OnDontKnow()
         {
-            _results[CurrentFlashcard.FlashcardId] = false; 
+            _results[CurrentFlashcard.FlashcardId] = false;
             HandleAdvance();
         }
 
@@ -114,7 +111,10 @@ namespace MasterYourEnglish.Presentation.ViewModels
             {
                 int userId = _currentUserService.CurrentUser.UserId;
 
-                await _bundleService.SaveSessionAttemptAsync(_bundleId, userId, _results);
+                if (_bundleId > 0)
+                {
+                    await _bundleService.SaveSessionAttemptAsync(_bundleId, userId, _results);
+                }
 
                 int knownCount = _results.Count(r => r.Value == true);
                 NavigationRequested?.Invoke($"SessionResults:{knownCount}:{_sessionCards.Count}");
@@ -129,12 +129,9 @@ namespace MasterYourEnglish.Presentation.ViewModels
         private async void AddToSaved()
         {
             if (!CanAddToSaved()) return;
-
             int userId = _currentUserService.CurrentUser.UserId;
             int flashcardId = CurrentFlashcard.FlashcardId;
-
             await _flashcardService.AddToSavedAsync(userId, flashcardId);
-
         }
     }
 }

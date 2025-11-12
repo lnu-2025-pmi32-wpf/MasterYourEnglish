@@ -50,6 +50,8 @@ namespace MasterYourEnglish.Presentation.ViewModels
             _sessionResultsVm.NavigationRequested += OnNavigationRequested;
             _sessionVm.NavigationRequested += OnNavigationRequested;
 
+            _savedVm.NavigationRequested += OnNavigationRequested;
+
             CurrentViewModel = _profileVm;
             LoadPageData(CurrentViewModel);
         }
@@ -87,6 +89,10 @@ namespace MasterYourEnglish.Presentation.ViewModels
                     case "Statistics": newPage = _statsVm; break;
                     case "Settings": newPage = _settingsVm; break;
                     case "SavedFlashcards": newPage = _savedVm; break;
+                    case "TestSavedFlashcards":
+                        _sessionVm.LoadSessionFromSaved();
+                        newPage = _sessionVm;
+                        break;
                 }
             }
 

@@ -96,5 +96,26 @@ namespace MasterYourEnglish.BLL.Services
 
             return true;
         }
+
+        public async Task<List<FlashcardSessionDto>> GetSavedFlashcardsForSessionAsync(int userId)
+        {
+            var flashcards = await _flashcardRepository.GetSavedFlashcardsForUserAsync(userId);
+
+            if (flashcards == null)
+            {
+                return new List<FlashcardSessionDto>();
+            }
+
+            return flashcards.Select(f => new FlashcardSessionDto
+            {
+                FlashcardId = f.FlashcardId,
+                Word = f.Word,
+                Transcription = f.Transcription ?? "",
+                Definition = f.Meaning ?? "",
+                Example = f.Example ?? "",
+                PartOfSpeech = f.PartOfSpeech ?? ""
+            })
+            .ToList();
+        }
     }
 }
