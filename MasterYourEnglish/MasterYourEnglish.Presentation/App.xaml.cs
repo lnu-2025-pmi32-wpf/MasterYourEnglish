@@ -17,6 +17,7 @@ namespace MasterYourEnglish.Presentation
     public partial class App : Application
     {
         private static IHost _host;
+        private Window _currentWindow;
 
         public App()
         {
@@ -36,23 +37,19 @@ namespace MasterYourEnglish.Presentation
         private void ConfigureServices(IConfiguration configuration, IServiceCollection services)
         {
             string connection = configuration.GetConnectionString("DefaultConnection");
-
             services.AddDbContext<ApplicationDbContext>(options =>
                 options.UseNpgsql(connection));
 
-            // --- Register Repositories ---
-            // Add *all* your repositories here
+            services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
+            services.AddScoped<IUserRepository, UserRepository>();
             services.AddScoped<ITestRepository, TestRepository>();
-            // services.AddScoped<IFlashcardBundleRepository, FlashcardBundleRepository>();
-            // ... etc
+            services.AddScoped<IFlashcardBundleRepository, FlashcardBundleRepository>();
 
-            // --- Register BLL Services ---
-            // Add *all* your BLL services here
+            services.AddTransient<IAuthService, AuthService>();
             services.AddTransient<ITestService, TestService>();
-            // services.AddTransient<IFlashcardBundleService, FlashcardBundleService>();
-            // ... etc
+            services.AddTransient<IUserService, UserService>();
+            services.AddSingleton<ICurrentUserService, CurrentUserService>();
 
-            // --- Register ViewModels ---
             services.AddTransient<MainViewModel>();
             services.AddTransient<SidebarViewModel>();
             services.AddTransient<FlashcardsViewModel>();
@@ -60,17 +57,71 @@ namespace MasterYourEnglish.Presentation
             services.AddTransient<StatisticsViewModel>();
             services.AddTransient<ProfileViewModel>();
             services.AddTransient<SettingsViewModel>();
-
-            // --- Register MainWindow ---
+            services.AddTransient<SavedFlashcardsViewModel>();
+            services.AddTransient<FlashcardSessionViewModel>();
+            services.AddTransient<LoginViewModel>();
+            services.AddTransient<RegisterViewModel>();
             services.AddSingleton<MainWindow>();
+            services.AddTransient<LoginView>();
+            services.AddTransient<RegisterView>();
         }
 
         protected override async void OnStartup(StartupEventArgs e)
         {
             await _host.StartAsync();
-            var mainWindow = _host.Services.GetRequiredService<MainWindow>();
-            mainWindow.Show();
-            base.OnStartup(e);
+            ShowLoginView();
+        }
+
+        private void ShowLoginView()
+        {
+            var loginViewModel = new LoginViewModel(
+                _host.Services.GetRequiredService<IAuthService>(),
+                onLoginSuccess: () => {
+                    ShowMainWindow();
+                },
+                onShowRegister: () => {
+                    ShowRegisterView();
+                }
+            );
+
+            var newWindow = new LoginView(loginViewModel);
+
+            newWindow.Show();
+
+            _currentWindow?.Close();
+
+            _currentWindow = newWindow;
+        }
+        private void ShowRegisterView()
+        {
+            var registerViewModel = new RegisterViewModel(
+                _host.Services.GetRequiredService<IAuthService>(),
+                onRegisterSuccess: () => {
+                    ShowLoginView();
+                },
+                onShowLogin: () => {
+                    ShowLoginView();
+                }
+            );
+
+            var newWindow = new RegisterView(registerViewModel);
+
+            newWindow.Show();
+
+            _currentWindow?.Close();
+
+            _currentWindow = newWindow;
+        }
+
+        private void ShowMainWindow()
+        {
+            var newWindow = _host.Services.GetRequiredService<MainWindow>();
+
+            newWindow.Show();
+
+            _currentWindow?.Close();
+
+            _currentWindow = newWindow;
         }
 
         protected override async void OnExit(ExitEventArgs e)

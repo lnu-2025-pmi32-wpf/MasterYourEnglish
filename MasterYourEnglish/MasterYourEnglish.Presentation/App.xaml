@@ -29,6 +29,14 @@
                 <views:SettingsView/>
             </DataTemplate>
 
+            <DataTemplate DataType="{x:Type vms:SavedFlashcardsViewModel}">
+                <views:SavedFlashcardsView/>
+            </DataTemplate>
+
+            <DataTemplate DataType="{x:Type vms:FlashcardSessionViewModel}">
+                <views:FlashcardSessionView/>
+            </DataTemplate>
+
         </ResourceDictionary>
     </Application.Resources>
 </Application>

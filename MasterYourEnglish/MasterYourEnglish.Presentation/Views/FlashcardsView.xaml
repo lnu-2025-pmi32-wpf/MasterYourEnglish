@@ -80,10 +80,12 @@
 				</Button>
 			</StackPanel>
 
-			<Button Grid.Column="1" Style="{StaticResource CardButtonStyle}" HorizontalAlignment="Right">
-				<TextBlock Text="Saved" FontSize="18" FontWeight="SemiBold" TextWrapping="Wrap"/>
-			</Button>
-		</Grid>
+            <Button Grid.Column="1" Style="{StaticResource CardButtonStyle}" 
+            HorizontalAlignment="Right"
+            Command="{Binding NavigateToSavedCommand}">
+                <TextBlock Text="Saved" FontSize="18" FontWeight="SemiBold" TextWrapping="Wrap"/>
+            </Button>
+        </Grid>
 
 		<Grid Grid.Row="2" Margin="0,0,10,10">
 			<Grid.ColumnDefinitions>
@@ -92,12 +94,15 @@
 				<ColumnDefinition Width="Auto"/>
 			</Grid.ColumnDefinitions>
 
-			<TextBox Grid.Column="0" Text="Search..." FontSize="16" Padding="5"
+            <TextBox Grid.Column="0" 
+                     Text="{Binding SearchTerm, UpdateSourceTrigger=PropertyChanged}" 
+                     FontSize="16" Padding="5"
                      MaxWidth="500" HorizontalAlignment="Left" MinWidth="400"
                      VerticalAlignment="Center"/>
 
-			<ComboBox Grid.Column="1" Text="Order by"
-                      IsEditable="True" IsReadOnly="True"
+            <ComboBox Grid.Column="1" 
+                      ItemsSource="{Binding SortOptions}"
+                      SelectedItem="{Binding SelectedSortOption}"
                       FontSize="16" Padding="5"
                       Margin="10,0,10,0" MinWidth="150" VerticalAlignment="Center"/>
 
@@ -115,17 +120,20 @@
 					</ItemsPanelTemplate>
 				</ItemsControl.ItemsPanel>
 
-				<ItemsControl.ItemTemplate>
-					<DataTemplate>
-						<Button Style="{StaticResource CardButtonStyle}">
-							<StackPanel>
-								<TextBlock Text="{Binding CategoryName}" Foreground="Gray" FontSize="12" TextWrapping="Wrap"/>
-								<TextBlock Text="{Binding BundleName}" FontWeight="SemiBold" FontSize="16" Margin="0,5,0,0" TextWrapping="Wrap"/>
-							</StackPanel>
-						</Button>
-					</DataTemplate>
-				</ItemsControl.ItemTemplate>
-			</ItemsControl>
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <Button Style="{StaticResource CardButtonStyle}"
+                                Command="{Binding DataContext.StartSessionCommand, 
+                                          RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                CommandParameter="{Binding}">
+                            <StackPanel>
+                                <TextBlock Text="{Binding CategoryName}" Foreground="Gray" FontSize="12" TextWrapping="Wrap"/>
+                                <TextBlock Text="{Binding BundleName}" FontWeight="SemiBold" FontSize="16" Margin="0,5,0,0" TextWrapping="Wrap"/>
+                            </StackPanel>
+                        </Button>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
 
 		</ScrollViewer>
 	</Grid>

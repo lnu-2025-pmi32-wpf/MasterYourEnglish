@@ -1,22 +1,42 @@
-﻿using MasterYourEnglish.Presentation.ViewModels.Commands;
+﻿using MasterYourEnglish.BLL.Interfaces;
+using MasterYourEnglish.Presentation.ViewModels.Commands;
+using System.Threading.Tasks;
 using System.Windows.Input;
 
 namespace MasterYourEnglish.Presentation.ViewModels
 {
     public class ProfileViewModel : ViewModelBase
     {
+        private readonly IUserService _userService;
+        private readonly ICurrentUserService _currentUserService;
+
+        private string _fullName;
+        public string FullName
+        {
+            get => _fullName;
+            set => SetProperty(ref _fullName, value);
+        }
+
         private string _firstName;
         public string FirstName
         {
             get => _firstName;
-            set => SetProperty(ref _firstName, value);
+            set
+            {
+                SetProperty(ref _firstName, value);
+                UpdateFullName();
+            }
         }
 
         private string _lastName;
         public string LastName
         {
             get => _lastName;
-            set => SetProperty(ref _lastName, value);
+            set
+            {
+                SetProperty(ref _lastName, value);
+                UpdateFullName();
+            }
         }
 
         private string _email;
@@ -33,36 +53,55 @@ namespace MasterYourEnglish.Presentation.ViewModels
             set => SetProperty(ref _username, value);
         }
 
-        private string _role;
-        public string Role
-        {
-            get => _role;
-            set => SetProperty(ref _role, value);
-        }
-
         public ICommand SaveChangesCommand { get; }
 
-        public ProfileViewModel(/* We'll inject a BLL UserService here */)
+        public ProfileViewModel(IUserService userService, ICurrentUserService currentUserService)
         {
-            // Load real data from BLL, for now we use fake data
-            LoadFakeData();
+            _userService = userService;
+            _currentUserService = currentUserService;
 
-            SaveChangesCommand = new RelayCommand(OnSaveChanges);
+            LoadUserProfile();
+
+            SaveChangesCommand = new RelayCommand(async () => await OnSaveChanges());
         }
 
-        private void LoadFakeData()
+        private void LoadUserProfile()
         {
-            FirstName = "John";
-            LastName = "Doe";
-            Email = "john.doe@email.com";
-            Username = "John Doe";
-            Role = "Admin";
+            var currentUser = _currentUserService.CurrentUser;
+            if (currentUser == null)
+            {
+                FirstName = "Error";
+                LastName = "User not found";
+                return;
+            }
+
+            FirstName = currentUser.FirstName;
+            LastName = currentUser.LastName;
+            Email = currentUser.Email;
+            Username = currentUser.UserName;
+
         }
 
-        private void OnSaveChanges()
+        private void UpdateFullName()
         {
-            // This is where you'll call your BLL UserService
-            // await _userService.UpdateProfileAsync( ... );
+            FullName = $"{FirstName} {LastName}";
+        }
+
+        private async Task OnSaveChanges()
+        {
+            int currentUserId = _currentUserService.CurrentUser.UserId;
+
+            bool success = await _userService.UpdateProfileAsync(currentUserId, this.FirstName, this.LastName);
+
+            if (success)
+            {
+                _currentUserService.CurrentUser.FirstName = this.FirstName;
+                _currentUserService.CurrentUser.LastName = this.LastName;
+            }
+            else
+            {
+                // Show an error
+            }
         }
     }
 }
