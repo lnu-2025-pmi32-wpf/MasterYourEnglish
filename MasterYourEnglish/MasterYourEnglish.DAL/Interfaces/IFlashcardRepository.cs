@@ -6,6 +6,6 @@ namespace MasterYourEnglish.DAL.Interfaces
     {
         Task<IEnumerable<Flashcard>> GetFlashcardsByDifficultyLevel(string difficultyLevel);
         Task<IEnumerable<Flashcard>> GetFlashcardsByTopic(int topicId);
-        Task<IEnumerable<Flashcard>> GetSavedFlashcardsByUserAsync(int userId);
+        Task<IEnumerable<Flashcard>> GetSavedFlashcardsForUserAsync(int userId);
     }
 }

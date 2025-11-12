@@ -1,12 +1,21 @@
-﻿using MasterYourEnglish.BLL.Models.DTOs;
+﻿using MasterYourEnglish.BLL.Interfaces;
+using MasterYourEnglish.BLL.Models.DTOs;
 using MasterYourEnglish.Presentation.ViewModels.Commands;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Linq;
+using System.Threading.Tasks;
+using System.Windows;
 using System.Windows.Input;
 
 namespace MasterYourEnglish.Presentation.ViewModels
 {
-    public class SavedFlashcardsViewModel : ViewModelBase
+    public class SavedFlashcardsViewModel : ViewModelBase, IPageViewModel
     {
+        private readonly IFlashcardService _flashcardService;
+        private readonly ICurrentUserService _currentUserService;
+        private bool _isLoading = false;
+
         public ObservableCollection<SavedFlashcardDto> SavedFlashcards { get; }
 
         private SavedFlashcardDto _selectedFlashcard;
@@ -16,56 +25,105 @@ namespace MasterYourEnglish.Presentation.ViewModels
             set => SetProperty(ref _selectedFlashcard, value);
         }
 
+        private string _searchTerm;
+        public string SearchTerm
+        {
+            get => _searchTerm;
+            set
+            {
+                SetProperty(ref _searchTerm, value);
+                Task.Run(LoadDataAsync);
+            }
+        }
+
+        public List<string> SortOptions { get; }
+        private string _selectedSortOption;
+        public string SelectedSortOption
+        {
+            get => _selectedSortOption;
+            set
+            {
+                SetProperty(ref _selectedSortOption, value);
+                LoadDataAsync();
+            }
+        }
+
+        // --- Commands ---
         public ICommand MarkAsLearnedCommand { get; }
         public ICommand RemoveFromSavedCommand { get; }
 
-        public SavedFlashcardsViewModel(/* BLL service here */)
+        public SavedFlashcardsViewModel(IFlashcardService flashcardService, ICurrentUserService currentUserService)
         {
+            _flashcardService = flashcardService;
+            _currentUserService = currentUserService;
+
             SavedFlashcards = new ObservableCollection<SavedFlashcardDto>();
-            LoadFakeData();
 
-            if (SavedFlashcards.Count > 0)
+            SortOptions = new List<string> { "Name (A-Z)", "Name (Z-A)", "Level (Easy-Hard)", "Level (Hard-Easy)" };
+            _selectedSortOption = SortOptions.First();
+
+            MarkAsLearnedCommand = new RelayCommand(p => OnMarkAsLearned(), p => SelectedFlashcard != null);
+            RemoveFromSavedCommand = new RelayCommand(p => OnRemoveFromSaved(), p => SelectedFlashcard != null);
+        }
+
+        public async Task LoadDataAsync()
+        {
+            if (_isLoading) return;
+
+            if (_currentUserService.CurrentUser == null) return;
+
+            _isLoading = true;
+
+            try
             {
-                SelectedFlashcard = SavedFlashcards[0];
-            }
+                int userId = _currentUserService.CurrentUser.UserId;
 
-            MarkAsLearnedCommand = new RelayCommand(OnMarkAsLearned);
-            RemoveFromSavedCommand = new RelayCommand(OnRemoveFromSaved);
+                string sortBy = _selectedSortOption.Contains("Name") ? "Name" : "Level";
+                bool ascending = _selectedSortOption.Contains("(A-Z)") || _selectedSortOption.Contains("(Easy-Hard)");
+
+                var flashcards = await _flashcardService.GetSavedFlashcardsAsync(userId, SearchTerm, sortBy, ascending);
+
+                Application.Current.Dispatcher.Invoke(() =>
+                {
+                    SavedFlashcards.Clear();
+                    foreach (var card in flashcards)
+                    {
+                        SavedFlashcards.Add(card);
+                    }
+
+                    if (SavedFlashcards.Count > 0)
+                    {
+                        SelectedFlashcard = SavedFlashcards[0];
+                    }
+                    else
+                    {
+                        SelectedFlashcard = null;
+                    }
+                });
+            }
+            finally
+            {
+                _isLoading = false;
+            }
         }
 
         private void OnMarkAsLearned()
         {
-
+            OnRemoveFromSaved();
         }
 
-        private void OnRemoveFromSaved()
+        private async void OnRemoveFromSaved()
         {
+            if (SelectedFlashcard == null) return;
 
-        }
+            int userId = _currentUserService.CurrentUser.UserId;
+            int cardId = SelectedFlashcard.FlashcardId;
+            var cardToRemove = SelectedFlashcard;
 
-        private void LoadFakeData()
-        {
-            SavedFlashcards.Add(new SavedFlashcardDto
-            {
-                Word = "Innermost",
-                PartOfSpeech = "adjective",
-                Difficulty = "B2",
-                Transcription = "[/ˌɪnərˈmoʊst/]",
-                Meaning = "most secret and hidden",
-                Example = "This was the diary in which Gina recorded her innermost thoughts and secrets."
-            });
-            SavedFlashcards.Add(new SavedFlashcardDto
-            {
-                Word = "Fluid",
-                PartOfSpeech = "adjective",
-                Difficulty = "B1",
-                Transcription = "[/ˈfluː.ɪd/]",
-                Meaning = "smooth and continuous",
-                Example = "The dancer's movements were fluid and graceful."
-            });
-            SavedFlashcards.Add(new SavedFlashcardDto { Word = "Grace", PartOfSpeech = "noun", Difficulty = "B2", Transcription = "[/ɡreɪs/]", Meaning = "a quality of moving in a smooth, relaxed, and attractive way", Example = "She moved with the grace of a cat." });
-            SavedFlashcards.Add(new SavedFlashcardDto { Word = "Quintessential", PartOfSpeech = "adjective", Difficulty = "C1", Transcription = "[/ˌkwɪn.tɪˈsen.ʃəl/]", Meaning = "being the most typical example or most important part of something", Example = "He was the quintessential tough guy." });
-            SavedFlashcards.Add(new SavedFlashcardDto { Word = "Ambivalence", PartOfSpeech = "noun", Difficulty = "C1", Transcription = "[/æmˈbɪv.ə.ləns/]", Meaning = "the state of having two opposing feelings at the same time", Example = "He felt a certain ambivalence towards his new job." });
+            await _flashcardService.RemoveFromSavedAsync(userId, cardId);
+
+            SavedFlashcards.Remove(cardToRemove);
+            SelectedFlashcard = SavedFlashcards.FirstOrDefault();
         }
     }
 }

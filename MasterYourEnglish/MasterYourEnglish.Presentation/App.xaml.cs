@@ -44,12 +44,14 @@ namespace MasterYourEnglish.Presentation
             services.AddScoped<IUserRepository, UserRepository>();
             services.AddScoped<ITestRepository, TestRepository>();
             services.AddScoped<IFlashcardBundleRepository, FlashcardBundleRepository>();
+            services.AddScoped<IFlashcardRepository, FlashcardRepository>();
 
             services.AddTransient<IAuthService, AuthService>();
             services.AddTransient<ITestService, TestService>();
             services.AddTransient<IUserService, UserService>();
             services.AddSingleton<ICurrentUserService, CurrentUserService>();
             services.AddTransient<IFlashcardBundleService, FlashcardBundleService>();
+            services.AddTransient<IFlashcardService, FlashcardService>();
 
             services.AddTransient<MainViewModel>();
             services.AddTransient<SidebarViewModel>();

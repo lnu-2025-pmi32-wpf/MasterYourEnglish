@@ -25,12 +25,13 @@ namespace MasterYourEnglish.DAL.Repositories
                 .ToListAsync();
         }
 
-        public async Task<IEnumerable<Flashcard>> GetSavedFlashcardsByUserAsync(int userId)
+        public async Task<IEnumerable<Flashcard>> GetSavedFlashcardsForUserAsync(int userId)
         {
             return await _context.SavedFlashcards
                 .Where(sf => sf.UserId == userId)
+                .Include(sf => sf.Flashcard)
+                    .ThenInclude(f => f.Topic)
                 .Select(sf => sf.Flashcard)
-                .OrderBy(f => f.Word)
                 .ToListAsync();
         }
     }
