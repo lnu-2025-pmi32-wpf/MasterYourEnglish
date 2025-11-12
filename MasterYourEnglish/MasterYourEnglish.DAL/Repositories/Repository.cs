@@ -48,5 +48,9 @@ namespace MasterYourEnglish.DAL.Repositories
             _context.Set<T>().Remove(entity);
             await _context.SaveChangesAsync();
         }
+        public async Task AddRangeAsync(IEnumerable<T> entities)
+        {
+            await _dbSet.AddRangeAsync(entities);
+        }
     }
 }

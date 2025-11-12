@@ -58,6 +58,13 @@ namespace MasterYourEnglish.Presentation.ViewModels
             StartSession();
         }
 
+        public void LoadSession(List<FlashcardSessionDto> cards)
+        {
+            _bundleId = 0;
+            _sessionCards = cards;
+            StartSession();
+        }
+
         public async void LoadSessionFromSaved()
         {
             _bundleId = 0;

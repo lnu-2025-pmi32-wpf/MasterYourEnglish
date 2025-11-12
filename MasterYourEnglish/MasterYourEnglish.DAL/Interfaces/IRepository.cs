@@ -10,5 +10,6 @@ namespace MasterYourEnglish.DAL.Interfaces
         Task<IEnumerable<T>> FindAsync(Expression<Func<T, bool>> expression);
         Task UpdateAsync(T entity);
         Task DeleteAsync(T entity);
+        Task AddRangeAsync(IEnumerable<T> entities);
     }
 }

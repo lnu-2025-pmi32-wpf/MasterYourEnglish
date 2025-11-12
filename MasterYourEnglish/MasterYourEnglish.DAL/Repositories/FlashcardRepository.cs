@@ -34,5 +34,20 @@ namespace MasterYourEnglish.DAL.Repositories
                 .Select(sf => sf.Flashcard)
                 .ToListAsync();
         }
+
+        public async Task<List<Flashcard>> GetFlashcardsByCriteriaAsync(int topicId, List<string> levels, int count)
+        {
+            IQueryable<Flashcard> query = _dbSet.Where(f => f.TopicId == topicId);
+
+            if (levels != null && levels.Count > 0)
+            {
+                query = query.Where(f => f.DifficultyLevel != null && levels.Contains(f.DifficultyLevel));
+            }
+
+            return await query
+                .OrderBy(f => EF.Functions.Random())
+                .Take(count)
+                .ToListAsync();
+        }
     }
 }

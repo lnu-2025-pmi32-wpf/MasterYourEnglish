@@ -41,6 +41,9 @@
                 <views:SessionResultsView/>
             </DataTemplate>
 
+            <DataTemplate DataType="{x:Type vms:GenerateBundleViewModel}">
+                <views:GenerateBundleView/>
+            </DataTemplate>
         </ResourceDictionary>
     </Application.Resources>
 </Application>

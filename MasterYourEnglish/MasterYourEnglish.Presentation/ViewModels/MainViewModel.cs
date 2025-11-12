@@ -1,4 +1,6 @@
-﻿using System;
+﻿using MasterYourEnglish.BLL.DTOs; 
+using System;
+using System.Collections.Generic; 
 using System.Threading.Tasks;
 
 namespace MasterYourEnglish.Presentation.ViewModels
@@ -6,12 +8,7 @@ namespace MasterYourEnglish.Presentation.ViewModels
     public class MainViewModel : ViewModelBase
     {
         private ViewModelBase _currentViewModel;
-        public ViewModelBase CurrentViewModel
-        {
-            get => _currentViewModel;
-            set => SetProperty(ref _currentViewModel, value);
-        }
-
+        public ViewModelBase CurrentViewModel { get => _currentViewModel; set => SetProperty(ref _currentViewModel, value); }
         public SidebarViewModel SidebarVm { get; }
 
         private readonly ProfileViewModel _profileVm;
@@ -22,6 +19,7 @@ namespace MasterYourEnglish.Presentation.ViewModels
         private readonly SavedFlashcardsViewModel _savedVm;
         private readonly FlashcardSessionViewModel _sessionVm;
         private readonly SessionResultsViewModel _sessionResultsVm;
+        private readonly GenerateBundleViewModel _generateBundleVm;
 
         public MainViewModel(
             SidebarViewModel sidebarViewModel,
@@ -32,7 +30,8 @@ namespace MasterYourEnglish.Presentation.ViewModels
             SettingsViewModel settingsVm,
             SavedFlashcardsViewModel savedVm,
             FlashcardSessionViewModel sessionVm,
-            SessionResultsViewModel sessionResultsVm)
+            SessionResultsViewModel sessionResultsVm,
+            GenerateBundleViewModel generateBundleVm)
         {
             SidebarVm = sidebarViewModel;
             _profileVm = profileVm;
@@ -43,17 +42,26 @@ namespace MasterYourEnglish.Presentation.ViewModels
             _savedVm = savedVm;
             _sessionVm = sessionVm;
             _sessionResultsVm = sessionResultsVm;
+            _generateBundleVm = generateBundleVm;
 
             SidebarVm.NavigationRequested += OnNavigationRequested;
             _flashcardsVm.NavigationRequested += OnNavigationRequested;
-
             _sessionResultsVm.NavigationRequested += OnNavigationRequested;
             _sessionVm.NavigationRequested += OnNavigationRequested;
-
             _savedVm.NavigationRequested += OnNavigationRequested;
+
+
+            _generateBundleVm.NavigationRequested += OnNavigationRequested;
+            _generateBundleVm.SessionGenerated += OnSessionGenerated; 
 
             CurrentViewModel = _profileVm;
             LoadPageData(CurrentViewModel);
+        }
+
+        private void OnSessionGenerated(List<FlashcardSessionDto> cards)
+        {
+            _sessionVm.LoadSession(cards);
+            CurrentViewModel = _sessionVm;
         }
 
         private void OnNavigationRequested(string navigationKey)
@@ -69,13 +77,11 @@ namespace MasterYourEnglish.Presentation.ViewModels
                     newPage = _sessionVm;
                 }
             }
-
             else if (navigationKey.StartsWith("SessionResults:"))
             {
                 var parts = navigationKey.Split(':');
                 int known = int.Parse(parts[1]);
                 int total = int.Parse(parts[2]);
-
                 _sessionResultsVm.ShowResults(known, total);
                 newPage = _sessionResultsVm;
             }
@@ -93,13 +99,15 @@ namespace MasterYourEnglish.Presentation.ViewModels
                         _sessionVm.LoadSessionFromSaved();
                         newPage = _sessionVm;
                         break;
+                    case "GenerateBundle":
+                        newPage = _generateBundleVm;
+                        break;
                 }
             }
 
             if (newPage != CurrentViewModel)
             {
                 CurrentViewModel = newPage;
-
                 LoadPageData(CurrentViewModel);
             }
         }

@@ -8,5 +8,6 @@ namespace MasterYourEnglish.BLL.Interfaces
         Task<IEnumerable<FlashcardBundleCardDto>> GetPublishedBundlesAsync(string searchTerm, string sortBy, bool ascending);
         Task<List<FlashcardSessionDto>> GetFlashcardSessionAsync(int bundleId);
         Task SaveSessionAttemptAsync(int bundleId, int userId, Dictionary<int, bool> results);
+        Task<List<FlashcardSessionDto>> GetGeneratedSessionAsync(int userId, List<string> levels, Dictionary<int, int> topicRequests);
     }
 }

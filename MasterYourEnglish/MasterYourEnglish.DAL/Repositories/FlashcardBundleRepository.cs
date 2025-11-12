@@ -45,7 +45,7 @@ namespace MasterYourEnglish.DAL.Repositories
         {
             return await _dbSet
                 .Where(b => b.IsPublished)
-                .Include(b => b.Topic)    
+                .Include(b => b.Topic)
                 .ToListAsync();
         }
     }

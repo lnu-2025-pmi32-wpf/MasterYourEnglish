@@ -47,6 +47,7 @@ namespace MasterYourEnglish.Presentation
             services.AddScoped<IFlashcardBundleRepository, FlashcardBundleRepository>();
             services.AddScoped<IFlashcardRepository, FlashcardRepository>();
             services.AddScoped<IFlashcardsBundleAttemptRepository, FlashcardsBundleAttemptRepository>();
+            services.AddScoped<IRepository<Topic>, Repository<Topic>>();
 
             services.AddTransient<IAuthService, AuthService>();
             services.AddTransient<ITestService, TestService>();
@@ -54,8 +55,9 @@ namespace MasterYourEnglish.Presentation
             services.AddSingleton<ICurrentUserService, CurrentUserService>();
             services.AddTransient<IFlashcardBundleService, FlashcardBundleService>();
             services.AddTransient<IFlashcardService, FlashcardService>();
-            services.AddScoped<IRepository<FlashcardAttemptAnswer>, Repository<FlashcardAttemptAnswer>>();
+            services.AddTransient<ITopicService, TopicService>();
 
+            services.AddScoped<IRepository<FlashcardAttemptAnswer>, Repository<FlashcardAttemptAnswer>>();
             services.AddTransient<MainViewModel>();
             services.AddTransient<SidebarViewModel>();
             services.AddTransient<FlashcardsViewModel>();
@@ -71,6 +73,7 @@ namespace MasterYourEnglish.Presentation
             services.AddTransient<LoginView>();
             services.AddTransient<RegisterView>();
             services.AddTransient<SessionResultsViewModel>();
+            services.AddTransient<GenerateBundleViewModel>();
         }
 
         protected override async void OnStartup(StartupEventArgs e)
