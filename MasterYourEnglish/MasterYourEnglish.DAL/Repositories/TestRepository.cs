@@ -53,5 +53,13 @@ namespace MasterYourEnglish.DAL.Repositories
                 .ToListAsync();
         }
 
+        public async Task<IEnumerable<Test>> GetPublishedTestsWithDetailsAsync()
+        {
+            return await _dbSet
+                .Where(t => t.IsPublished) 
+                .Include(t => t.Topic)     
+                .ToListAsync();
+        }
+
     }
 }

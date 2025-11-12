@@ -29,6 +29,25 @@
                 <views:SettingsView/>
             </DataTemplate>
 
+            <DataTemplate DataType="{x:Type vms:SavedFlashcardsViewModel}">
+                <views:SavedFlashcardsView/>
+            </DataTemplate>
+
+            <DataTemplate DataType="{x:Type vms:FlashcardSessionViewModel}">
+                <views:FlashcardSessionView/>
+            </DataTemplate>
+
+            <DataTemplate DataType="{x:Type vms:SessionResultsViewModel}">
+                <views:SessionResultsView/>
+            </DataTemplate>
+
+            <DataTemplate DataType="{x:Type vms:GenerateBundleViewModel}">
+                <views:GenerateBundleView/>
+            </DataTemplate>
+
+            <DataTemplate DataType="{x:Type vms:CreateBundleViewModel}">
+                <views:CreateBundleView/>
+            </DataTemplate>
         </ResourceDictionary>
     </Application.Resources>
 </Application>

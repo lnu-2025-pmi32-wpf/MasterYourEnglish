@@ -25,12 +25,28 @@ namespace MasterYourEnglish.DAL.Repositories
                 .ToListAsync();
         }
 
-        public async Task<IEnumerable<Flashcard>> GetSavedFlashcardsByUserAsync(int userId)
+        public async Task<IEnumerable<Flashcard>> GetSavedFlashcardsForUserAsync(int userId)
         {
             return await _context.SavedFlashcards
                 .Where(sf => sf.UserId == userId)
+                .Include(sf => sf.Flashcard)
+                    .ThenInclude(f => f.Topic)
                 .Select(sf => sf.Flashcard)
-                .OrderBy(f => f.Word)
+                .ToListAsync();
+        }
+
+        public async Task<List<Flashcard>> GetFlashcardsByCriteriaAsync(int topicId, List<string> levels, int count)
+        {
+            IQueryable<Flashcard> query = _dbSet.Where(f => f.TopicId == topicId);
+
+            if (levels != null && levels.Count > 0)
+            {
+                query = query.Where(f => f.DifficultyLevel != null && levels.Contains(f.DifficultyLevel));
+            }
+
+            return await query
+                .OrderBy(f => EF.Functions.Random())
+                .Take(count)
                 .ToListAsync();
         }
     }

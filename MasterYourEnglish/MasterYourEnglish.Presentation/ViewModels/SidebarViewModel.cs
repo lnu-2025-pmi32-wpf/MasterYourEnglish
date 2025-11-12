@@ -1,16 +1,12 @@
 ﻿using MasterYourEnglish.Presentation.ViewModels.Commands;
+using System;
 using System.Windows.Input;
 
 namespace MasterYourEnglish.Presentation.ViewModels
 {
     public class SidebarViewModel : ViewModelBase
     {
-        public event Action<ViewModelBase> NavigationRequested;
-        public ProfileViewModel ProfileVm { get; }
-        public FlashcardsViewModel FlashcardsVm { get; }
-        public TestListViewModel TestListVm { get; }
-        public StatisticsViewModel StatsVm { get; }
-        public SettingsViewModel SettingsVm { get; }
+        public event Action<string> NavigationRequested;
 
         public ICommand NavigateToProfileCommand { get; }
         public ICommand NavigateToFlashcardsCommand { get; }
@@ -18,33 +14,22 @@ namespace MasterYourEnglish.Presentation.ViewModels
         public ICommand NavigateToStatisticsCommand { get; }
         public ICommand NavigateToSettingsCommand { get; }
 
-        public SidebarViewModel(ProfileViewModel profileVm, FlashcardsViewModel flashcardsVm, TestListViewModel testListVm,
-                                StatisticsViewModel statsVm, SettingsViewModel settingsVm)
+        public SidebarViewModel()
         {
-            ProfileVm = profileVm;
-            FlashcardsVm = flashcardsVm;
-            TestListVm = testListVm;
-            StatsVm = statsVm;
-            SettingsVm = settingsVm;
-
             NavigateToProfileCommand = new RelayCommand(
-                () => NavigationRequested?.Invoke(ProfileVm)
+                () => NavigationRequested?.Invoke("Profile")
             );
-
             NavigateToFlashcardsCommand = new RelayCommand(
-                () => NavigationRequested?.Invoke(FlashcardsVm)
+                () => NavigationRequested?.Invoke("Flashcards")
             );
-
             NavigateToTestsCommand = new RelayCommand(
-                () => NavigationRequested?.Invoke(TestListVm)
+                () => NavigationRequested?.Invoke("Tests")
             );
-
             NavigateToStatisticsCommand = new RelayCommand(
-                () => NavigationRequested?.Invoke(StatsVm)
+                () => NavigationRequested?.Invoke("Statistics")
             );
-
             NavigateToSettingsCommand = new RelayCommand(
-                () => NavigationRequested?.Invoke(SettingsVm)
+                () => NavigationRequested?.Invoke("Settings")
             );
         }
     }

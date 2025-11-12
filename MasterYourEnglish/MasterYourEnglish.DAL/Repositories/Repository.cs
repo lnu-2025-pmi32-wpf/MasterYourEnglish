@@ -1,6 +1,7 @@
 ﻿using MasterYourEnglish.DAL.Data;
 using MasterYourEnglish.DAL.Interfaces;
 using Microsoft.EntityFrameworkCore;
+using System.Linq.Expressions;
 
 namespace MasterYourEnglish.DAL.Repositories
 {
@@ -31,6 +32,11 @@ namespace MasterYourEnglish.DAL.Repositories
             await _context.SaveChangesAsync();
         }
 
+        public async Task<IEnumerable<T>> FindAsync(Expression<Func<T, bool>> expression)
+        {
+            return await _dbSet.Where(expression).ToListAsync();
+        }
+
         public async Task UpdateAsync(T entity)
         {
             _context.Set<T>().Update(entity);
@@ -41,6 +47,10 @@ namespace MasterYourEnglish.DAL.Repositories
         {
             _context.Set<T>().Remove(entity);
             await _context.SaveChangesAsync();
+        }
+        public async Task AddRangeAsync(IEnumerable<T> entities)
+        {
+            await _dbSet.AddRangeAsync(entities);
         }
     }
 }

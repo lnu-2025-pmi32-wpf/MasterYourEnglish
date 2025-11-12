@@ -27,6 +27,20 @@ namespace MasterYourEnglish.DAL.Data
         {
             base.OnModelCreating(modelBuilder);
 
+            modelBuilder.Entity<User>().HasKey(e => e.UserId);
+            modelBuilder.Entity<Topic>().HasKey(e => e.TopicId);
+            modelBuilder.Entity<Flashcard>().HasKey(e => e.FlashcardId);
+            modelBuilder.Entity<Test>().HasKey(e => e.TestId);
+            modelBuilder.Entity<Question>().HasKey(e => e.QuestionId);
+            modelBuilder.Entity<TestAttempt>().HasKey(e => e.AttemptId);
+            modelBuilder.Entity<TestAttemptAnswer>().HasKey(e => e.AttemptAnswersId);
+
+            modelBuilder.Entity<FlashcardAttemptAnswer>().HasKey(e => e.AnswerId);
+            modelBuilder.Entity<FlashcardBundle>().HasKey(e => e.FlashcardsBundleId);
+            modelBuilder.Entity<FlashcardBundleAttempt>().HasKey(e => e.AttemptId);
+            modelBuilder.Entity<QuestionOption>().HasKey(e => e.OptionId);
+
+
             modelBuilder.Entity<FlashcardBundleItem>()
                 .HasKey(fbi => new { fbi.FlashcardsBundleId, fbi.FlashcardId });
 
@@ -38,6 +52,7 @@ namespace MasterYourEnglish.DAL.Data
 
             modelBuilder.Entity<TestAttemptAnswerSelectedOption>()
                 .HasKey(taaso => new { taaso.AttemptAnswersId, taaso.SelectedOptionId });
+
 
             modelBuilder.Entity<FlashcardBundleItem>()
                 .HasOne(fbi => fbi.FlashcardsBundle)
@@ -62,7 +77,7 @@ namespace MasterYourEnglish.DAL.Data
                 .HasOne(tq => tq.Question)
                 .WithMany(q => q.TestQuestions)
                 .HasForeignKey(tq => tq.QuestionId)
-                .OnDelete(DeleteBehavior.Restrict); 
+                .OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<SavedFlashcard>()
                 .HasOne(sf => sf.User)

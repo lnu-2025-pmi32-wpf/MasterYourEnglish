@@ -40,5 +40,13 @@ namespace MasterYourEnglish.DAL.Repositories
                 .OrderByDescending(b => b.CreatedAt)
                 .ToListAsync();
         }
+
+        public async Task<IEnumerable<FlashcardBundle>> GetPublishedBundlesWithDetailsAsync()
+        {
+            return await _dbSet
+                .Where(b => b.IsPublished)
+                .Include(b => b.Topic)
+                .ToListAsync();
+        }
     }
 }

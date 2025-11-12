@@ -1,36 +1,96 @@
-﻿using System.Collections.ObjectModel;
+﻿using MasterYourEnglish.BLL.Interfaces;
+using MasterYourEnglish.BLL.Models.DTOs;
+using MasterYourEnglish.Presentation.ViewModels.Commands;
+using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Linq;
+using System.Threading.Tasks;
+using System.Windows.Input;
 
 namespace MasterYourEnglish.Presentation.ViewModels
 {
-    // This DTO should be in your BLL project, but for now,
-    // we define it here so the ViewModel can use it.
-    public class FlashcardBundleCardDto
+    public class FlashcardsViewModel : ViewModelBase, IPageViewModel 
     {
-        public string CategoryName { get; set; } = "";
-        public string BundleName { get; set; } = "";
-    }
+        private readonly IFlashcardBundleService _bundleService;
+        private bool _isLoading = false;
 
-    public class FlashcardsViewModel : ViewModelBase
-    {
         public ObservableCollection<FlashcardBundleCardDto> FlashcardBundles { get; }
+        public event Action<string> NavigationRequested;
 
-        public FlashcardsViewModel(/*IFlashcardBundleService bundleService*/)
+        private string _searchTerm;
+        public string SearchTerm
         {
-            FlashcardBundles = new ObservableCollection<FlashcardBundleCardDto>();
-            LoadFakeData(); // We'll replace this with the BLL call
+            get => _searchTerm;
+            set
+            {
+                SetProperty(ref _searchTerm, value);
+                LoadDataAsync();
+            }
         }
 
-        private void LoadFakeData()
+        public List<string> SortOptions { get; }
+        private string _selectedSortOption;
+        public string SelectedSortOption
         {
-            // Just using your wireframe's text
-            FlashcardBundles.Add(new FlashcardBundleCardDto { CategoryName = "category name", BundleName = "Bundle name" });
-            FlashcardBundles.Add(new FlashcardBundleCardDto { CategoryName = "category name", BundleName = "Bundle name" });
-            FlashcardBundles.Add(new FlashcardBundleCardDto { CategoryName = "category name", BundleName = "Bundle name" });
-            FlashcardBundles.Add(new FlashcardBundleCardDto { CategoryName = "category name", BundleName = "Bundle name" });
-            FlashcardBundles.Add(new FlashcardBundleCardDto { CategoryName = "category name", BundleName = "Bundle name" });
-            FlashcardBundles.Add(new FlashcardBundleCardDto { CategoryName = "category name", BundleName = "Bundle name" });
-            FlashcardBundles.Add(new FlashcardBundleCardDto { CategoryName = "category name", BundleName = "Bundle name" });
-            FlashcardBundles.Add(new FlashcardBundleCardDto { CategoryName = "category name", BundleName = "Bundle name" });
+            get => _selectedSortOption;
+            set
+            {
+                SetProperty(ref _selectedSortOption, value);
+                LoadDataAsync();
+            }
+        }
+
+        public ICommand NavigateToSavedCommand { get; }
+        public ICommand StartSessionCommand { get; }
+        public ICommand NavigateToGenerateCommand { get; }
+        public ICommand NavigateToCreateCommand { get; }
+
+        public FlashcardsViewModel(IFlashcardBundleService bundleService)
+        {
+            _bundleService = bundleService;
+            FlashcardBundles = new ObservableCollection<FlashcardBundleCardDto>();
+
+            SortOptions = new List<string> { "Name (A-Z)", "Name (Z-A)", "Level (Easy-Hard)", "Level (Hard-Easy)" };
+            _selectedSortOption = SortOptions.First();
+
+            NavigateToSavedCommand = new RelayCommand(p => NavigationRequested?.Invoke("SavedFlashcards"));
+            StartSessionCommand = new RelayCommand(OnStartSession);
+            NavigateToGenerateCommand = new RelayCommand(p => NavigationRequested?.Invoke("GenerateBundle"));
+            NavigateToCreateCommand = new RelayCommand(p => NavigationRequested?.Invoke("CreateBundle"));
+
+        }
+
+        public async Task LoadDataAsync()
+        {
+            if (_isLoading) return;
+            _isLoading = true;
+
+            try
+            {
+                string sortBy = _selectedSortOption.Contains("Name") ? "Name" : "Level";
+                bool ascending = _selectedSortOption.Contains("(A-Z)") || _selectedSortOption.Contains("(Easy-Hard)");
+
+                var bundles = await _bundleService.GetPublishedBundlesAsync(SearchTerm, sortBy, ascending);
+
+                FlashcardBundles.Clear();
+                foreach (var bundle in bundles)
+                {
+                    FlashcardBundles.Add(bundle);
+                }
+            }
+            finally
+            {
+                _isLoading = false;
+            }
+        }
+
+        private void OnStartSession(object parameter)
+        {
+            if (parameter is FlashcardBundleCardDto bundle)
+            {
+                NavigationRequested?.Invoke($"FlashcardSession:{bundle.BundleId}");
+            }
         }
     }
 }

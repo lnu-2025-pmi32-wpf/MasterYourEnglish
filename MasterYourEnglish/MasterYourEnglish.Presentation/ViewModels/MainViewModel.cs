@@ -1,29 +1,130 @@
-﻿using System;
+﻿using MasterYourEnglish.BLL.DTOs; 
+using System;
+using System.Collections.Generic; 
+using System.Threading.Tasks;
 
 namespace MasterYourEnglish.Presentation.ViewModels
 {
-    public partial class MainViewModel : ViewModelBase
+    public class MainViewModel : ViewModelBase
     {
         private ViewModelBase _currentViewModel;
-        public ViewModelBase CurrentViewModel
-        {
-            get => _currentViewModel;
-            set => SetProperty(ref _currentViewModel, value);
-        }
-
+        public ViewModelBase CurrentViewModel { get => _currentViewModel; set => SetProperty(ref _currentViewModel, value); }
         public SidebarViewModel SidebarVm { get; }
 
-        public MainViewModel(SidebarViewModel sidebarViewModel)
+        private readonly ProfileViewModel _profileVm;
+        private readonly FlashcardsViewModel _flashcardsVm;
+        private readonly TestListViewModel _testListVm;
+        private readonly StatisticsViewModel _statsVm;
+        private readonly SettingsViewModel _settingsVm;
+        private readonly SavedFlashcardsViewModel _savedVm;
+        private readonly FlashcardSessionViewModel _sessionVm;
+        private readonly SessionResultsViewModel _sessionResultsVm;
+        private readonly GenerateBundleViewModel _generateBundleVm;
+        private readonly CreateBundleViewModel _createBundleVm;
+
+        public MainViewModel(
+            SidebarViewModel sidebarViewModel,
+            ProfileViewModel profileVm,
+            FlashcardsViewModel flashcardsVm,
+            TestListViewModel testListVm,
+            StatisticsViewModel statsVm,
+            SettingsViewModel settingsVm,
+            SavedFlashcardsViewModel savedVm,
+            FlashcardSessionViewModel sessionVm,
+            SessionResultsViewModel sessionResultsVm,
+            GenerateBundleViewModel generateBundleVm,
+            CreateBundleViewModel createBundleVm)
         {
             SidebarVm = sidebarViewModel;
-            SidebarVm.NavigationRequested += OnNavigationRequested;
+            _profileVm = profileVm;
+            _flashcardsVm = flashcardsVm;
+            _testListVm = testListVm;
+            _statsVm = statsVm;
+            _settingsVm = settingsVm;
+            _savedVm = savedVm;
+            _sessionVm = sessionVm;
+            _sessionResultsVm = sessionResultsVm;
+            _generateBundleVm = generateBundleVm;
+            _createBundleVm = createBundleVm;
 
-            CurrentViewModel = SidebarVm.ProfileVm;
+            SidebarVm.NavigationRequested += OnNavigationRequested;
+            _flashcardsVm.NavigationRequested += OnNavigationRequested;
+            _sessionResultsVm.NavigationRequested += OnNavigationRequested;
+            _sessionVm.NavigationRequested += OnNavigationRequested;
+            _savedVm.NavigationRequested += OnNavigationRequested;
+            _createBundleVm.NavigationRequested += OnNavigationRequested;
+
+
+            _generateBundleVm.NavigationRequested += OnNavigationRequested;
+            _generateBundleVm.SessionGenerated += OnSessionGenerated; 
+
+            CurrentViewModel = _profileVm;
+            LoadPageData(CurrentViewModel);
         }
 
-        private void OnNavigationRequested(ViewModelBase viewModel)
+        private void OnSessionGenerated(List<FlashcardSessionDto> cards)
         {
-            CurrentViewModel = viewModel;
+            _sessionVm.LoadSession(cards);
+            CurrentViewModel = _sessionVm;
+        }
+
+        private void OnNavigationRequested(string navigationKey)
+        {
+            ViewModelBase newPage = CurrentViewModel;
+
+            if (navigationKey.StartsWith("FlashcardSession:"))
+            {
+                var idString = navigationKey.Split(':')[1];
+                if (int.TryParse(idString, out int bundleId))
+                {
+                    _sessionVm.LoadSession(bundleId);
+                    newPage = _sessionVm;
+                }
+            }
+            else if (navigationKey.StartsWith("SessionResults:"))
+            {
+                var parts = navigationKey.Split(':');
+                int known = int.Parse(parts[1]);
+                int total = int.Parse(parts[2]);
+                _sessionResultsVm.ShowResults(known, total);
+                newPage = _sessionResultsVm;
+            }
+            else
+            {
+                switch (navigationKey)
+                {
+                    case "Profile": newPage = _profileVm; break;
+                    case "Flashcards": newPage = _flashcardsVm; break;
+                    case "Tests": newPage = _testListVm; break;
+                    case "Statistics": newPage = _statsVm; break;
+                    case "Settings": newPage = _settingsVm; break;
+                    case "SavedFlashcards": newPage = _savedVm; break;
+                    case "TestSavedFlashcards":
+                        _sessionVm.LoadSessionFromSaved();
+                        newPage = _sessionVm;
+                        break;
+                    case "GenerateBundle":
+                        newPage = _generateBundleVm;
+                        break;
+                    case "CreateBundle":
+                        newPage = _createBundleVm;
+                        break;
+                }
+            }
+
+            if (newPage != CurrentViewModel)
+            {
+                CurrentViewModel = newPage;
+                LoadPageData(CurrentViewModel);
+            }
+        }
+
+        private async void LoadPageData(ViewModelBase vm)
+        {
+            if (vm is IPageViewModel page)
+            {
+                await page.LoadDataAsync();
+            }
         }
     }
 }

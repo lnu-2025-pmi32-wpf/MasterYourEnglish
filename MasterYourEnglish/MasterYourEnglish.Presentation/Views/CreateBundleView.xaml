@@ -1,0 +1,157 @@
+﻿<UserControl x:Class="MasterYourEnglish.Presentation.Views.CreateBundleView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:vms="clr-namespace:MasterYourEnglish.Presentation.ViewModels"
+             mc:Ignorable="d" 
+             d:DataContext="{d:DesignInstance Type=vms:CreateBundleViewModel}"
+             d:DesignHeight="700" d:DesignWidth="900"
+             Background="{DynamicResource App.BackgroundBrush}">
+
+    <UserControl.Resources>
+        <Style TargetType="TextBlock" x:Key="LabelStyle">
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="Margin" Value="0,0,0,5"/>
+            <Setter Property="Foreground" Value="{DynamicResource Text.PrimaryBrush}"/>
+        </Style>
+        <Style TargetType="TextBox">
+            <Setter Property="FontSize" Value="16"/>
+            <Setter Property="Padding" Value="8"/>
+            <Setter Property="Background" Value="{DynamicResource Sidebar.BackgroundBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource Border.PrimaryBrush}"/>
+            <Setter Property="Margin" Value="0,0,0,15"/>
+        </Style>
+        <Style TargetType="ComboBox">
+            <Setter Property="FontSize" Value="16"/>
+            <Setter Property="Padding" Value="8"/>
+            <Setter Property="Background" Value="{DynamicResource Sidebar.BackgroundBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource Border.PrimaryBrush}"/>
+            <Setter Property="Margin" Value="0,0,0,15"/>
+        </Style>
+        <Style TargetType="Button" x:Key="PrimaryButton">
+            <Setter Property="FontSize" Value="18"/>
+            <Setter Property="Padding" Value="10"/>
+            <Setter Property="Background" Value="{DynamicResource Accent.PrimaryBrush}"/>
+            <Setter Property="Foreground" Value="{DynamicResource Text.OnAccentBrush}"/>
+            <Setter Property="Cursor" Value="Hand"/>
+        </Style>
+        <Style TargetType="Button" x:Key="SecondaryButton" BasedOn="{StaticResource PrimaryButton}">
+            <Setter Property="Background" Value="Gray"/>
+        </Style>
+        <Style TargetType="Button" x:Key="RemoveButton" BasedOn="{StaticResource PrimaryButton}">
+            <Setter Property="Background" Value="Red"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="Padding" Value="5"/>
+        </Style>
+    </UserControl.Resources>
+
+    <Grid Margin="30">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        
+        <TextBlock Grid.Row="0" Text="Create New Bundle"
+                   FontSize="28" FontWeight="SemiBold"
+                   Foreground="{DynamicResource Text.PrimaryBrush}"
+                   Margin="0,0,0,20"/>
+
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="1*"/>
+                <ColumnDefinition Width="1*"/>
+            </Grid.ColumnDefinitions>
+
+            <ScrollViewer Grid.Column="0" Margin="0,0,20,0" VerticalScrollBarVisibility="Auto">
+                
+                <StackPanel> 
+                    
+                    <TextBlock Text="Bundle Title" Style="{StaticResource LabelStyle}"/>
+                    <TextBox Text="{Binding Title}"/>
+                    
+                    <TextBlock Text="Bundle Description" Style="{StaticResource LabelStyle}"/>
+                    <TextBox Text="{Binding Description}" TextWrapping="Wrap" AcceptsReturn="True" Height="80"/>
+                    
+                    <TextBlock Text="Topic" Style="{StaticResource LabelStyle}"/>
+                    <ComboBox ItemsSource="{Binding AvailableTopics}"
+                              SelectedItem="{Binding SelectedTopic}"
+                              DisplayMemberPath="Name"/>
+                    
+                    <TextBlock Text="Difficulty Level" Style="{StaticResource LabelStyle}"/>
+                    <TextBox Text="{Binding Difficulty}"/>
+                    
+                    <Border BorderBrush="{DynamicResource Border.PrimaryBrush}" BorderThickness="0,1.5,0,0" Margin="0,20,0,20"/>
+
+                    <TextBlock Text="Add New Card" FontSize="20" FontWeight="SemiBold" Margin="0,0,0,10"/>
+                    <TextBlock Text="Word or Phrase" Style="{StaticResource LabelStyle}"/>
+                    <TextBox Text="{Binding NewWord, UpdateSourceTrigger=PropertyChanged}"/>
+                    
+                    <TextBlock Text="Meaning / Definition" Style="{StaticResource LabelStyle}"/>
+                    <TextBox Text="{Binding NewMeaning, UpdateSourceTrigger=PropertyChanged}"/>
+                    
+                    <TextBlock Text="Example (Optional)" Style="{StaticResource LabelStyle}"/>
+                    <TextBox Text="{Binding NewExample, UpdateSourceTrigger=PropertyChanged}"/>
+                    
+                    <TextBlock Text="Transcription (Optional)" Style="{StaticResource LabelStyle}"/>
+                    <TextBox Text="{Binding NewTranscription, UpdateSourceTrigger=PropertyChanged}"/>
+                    
+                    <TextBlock Text="Part of Speech (Optional)" Style="{StaticResource LabelStyle}"/>
+                    <TextBox Text="{Binding NewPartOfSpeech, UpdateSourceTrigger=PropertyChanged}"/>
+                    
+                    <Button Content="Add Card to Bundle" Style="{StaticResource PrimaryButton}"
+                            Command="{Binding AddCardCommand}"
+                            HorizontalAlignment="Left" MinWidth="150" Margin="0,10,0,0"/>
+                </StackPanel>
+            </ScrollViewer>
+
+            <Grid Grid.Column="1" Margin="20,0,0,0">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+                
+                <TextBlock Text="{Binding NewFlashcards.Count, StringFormat='Cards in Bundle: {0}'}" 
+                           Style="{StaticResource LabelStyle}"/>
+                
+                <ScrollViewer Grid.Row="0" Margin="0,30,0,0" VerticalScrollBarVisibility="Auto">
+                    <ItemsControl ItemsSource="{Binding NewFlashcards}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border Background="{DynamicResource Sidebar.BackgroundBrush}" 
+                                        BorderBrush="{DynamicResource Border.PrimaryBrush}"
+                                        BorderThickness="1" CornerRadius="3" Padding="10" Margin="0,0,0,5">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+                                        <StackPanel Grid.Column="0">
+                                            <TextBlock Text="{Binding Word}" FontSize="16" FontWeight="Bold"/>
+                                            <TextBlock Text="{Binding Meaning}" FontSize="14" TextWrapping="Wrap"/>
+                                        </StackPanel>
+                                        <Button Grid.Column="1" Content="Remove" 
+                                                Style="{StaticResource RemoveButton}"
+                                                VerticalAlignment="Center"
+                                                Command="{Binding DataContext.RemoveCardCommand, 
+                                                    RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                                CommandParameter="{Binding}"/>
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
+                
+                <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Right">
+                    <Button Content="Cancel" Style="{StaticResource SecondaryButton}" 
+                            Command="{Binding CancelCommand}" Margin="0,10,10,0"/>
+                    <Button Content="Save Bundle" Style="{StaticResource PrimaryButton}" 
+                            Command="{Binding SaveBundleCommand}" Margin="0,10,0,0"/>
+                </StackPanel>
+            </Grid>
+        </Grid>
+    </Grid>
+</UserControl>
