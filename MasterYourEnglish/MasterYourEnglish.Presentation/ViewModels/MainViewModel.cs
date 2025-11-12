@@ -21,6 +21,7 @@ namespace MasterYourEnglish.Presentation.ViewModels
         private readonly SettingsViewModel _settingsVm;
         private readonly SavedFlashcardsViewModel _savedVm;
         private readonly FlashcardSessionViewModel _sessionVm;
+        private readonly SessionResultsViewModel _sessionResultsVm;
 
         public MainViewModel(
             SidebarViewModel sidebarViewModel,
@@ -30,7 +31,8 @@ namespace MasterYourEnglish.Presentation.ViewModels
             StatisticsViewModel statsVm,
             SettingsViewModel settingsVm,
             SavedFlashcardsViewModel savedVm,
-            FlashcardSessionViewModel sessionVm)
+            FlashcardSessionViewModel sessionVm,
+            SessionResultsViewModel sessionResultsVm)
         {
             SidebarVm = sidebarViewModel;
             _profileVm = profileVm;
@@ -40,9 +42,13 @@ namespace MasterYourEnglish.Presentation.ViewModels
             _settingsVm = settingsVm;
             _savedVm = savedVm;
             _sessionVm = sessionVm;
+            _sessionResultsVm = sessionResultsVm;
 
             SidebarVm.NavigationRequested += OnNavigationRequested;
             _flashcardsVm.NavigationRequested += OnNavigationRequested;
+
+            _sessionResultsVm.NavigationRequested += OnNavigationRequested;
+            _sessionVm.NavigationRequested += OnNavigationRequested;
 
             CurrentViewModel = _profileVm;
             LoadPageData(CurrentViewModel);
@@ -50,7 +56,7 @@ namespace MasterYourEnglish.Presentation.ViewModels
 
         private void OnNavigationRequested(string navigationKey)
         {
-            ViewModelBase newPage = CurrentViewModel; 
+            ViewModelBase newPage = CurrentViewModel;
 
             if (navigationKey.StartsWith("FlashcardSession:"))
             {
@@ -60,6 +66,16 @@ namespace MasterYourEnglish.Presentation.ViewModels
                     _sessionVm.LoadSession(bundleId);
                     newPage = _sessionVm;
                 }
+            }
+
+            else if (navigationKey.StartsWith("SessionResults:"))
+            {
+                var parts = navigationKey.Split(':');
+                int known = int.Parse(parts[1]);
+                int total = int.Parse(parts[2]);
+
+                _sessionResultsVm.ShowResults(known, total);
+                newPage = _sessionResultsVm;
             }
             else
             {

@@ -1,6 +1,7 @@
 ﻿using MasterYourEnglish.BLL.Interfaces;
 using MasterYourEnglish.BLL.Services;
 using MasterYourEnglish.DAL.Data;
+using MasterYourEnglish.DAL.Entities;
 using MasterYourEnglish.DAL.Interfaces;
 using MasterYourEnglish.DAL.Repositories;
 using MasterYourEnglish.Presentation.ViewModels;
@@ -45,6 +46,7 @@ namespace MasterYourEnglish.Presentation
             services.AddScoped<ITestRepository, TestRepository>();
             services.AddScoped<IFlashcardBundleRepository, FlashcardBundleRepository>();
             services.AddScoped<IFlashcardRepository, FlashcardRepository>();
+            services.AddScoped<IFlashcardsBundleAttemptRepository, FlashcardsBundleAttemptRepository>();
 
             services.AddTransient<IAuthService, AuthService>();
             services.AddTransient<ITestService, TestService>();
@@ -52,6 +54,7 @@ namespace MasterYourEnglish.Presentation
             services.AddSingleton<ICurrentUserService, CurrentUserService>();
             services.AddTransient<IFlashcardBundleService, FlashcardBundleService>();
             services.AddTransient<IFlashcardService, FlashcardService>();
+            services.AddScoped<IRepository<FlashcardAttemptAnswer>, Repository<FlashcardAttemptAnswer>>();
 
             services.AddTransient<MainViewModel>();
             services.AddTransient<SidebarViewModel>();
@@ -67,6 +70,7 @@ namespace MasterYourEnglish.Presentation
             services.AddSingleton<MainWindow>();
             services.AddTransient<LoginView>();
             services.AddTransient<RegisterView>();
+            services.AddTransient<SessionResultsViewModel>();
         }
 
         protected override async void OnStartup(StartupEventArgs e)

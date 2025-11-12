@@ -7,6 +7,7 @@ namespace MasterYourEnglish.DAL.Interfaces
         Task<T> GetByIdAsync(int id);
         Task<IEnumerable<T>> GetAllAsync();
         Task AddAsync(T entity);
+        Task<IEnumerable<T>> FindAsync(Expression<Func<T, bool>> expression);
         Task UpdateAsync(T entity);
         Task DeleteAsync(T entity);
     }

@@ -1,6 +1,7 @@
 ﻿using MasterYourEnglish.DAL.Data;
 using MasterYourEnglish.DAL.Interfaces;
 using Microsoft.EntityFrameworkCore;
+using System.Linq.Expressions;
 
 namespace MasterYourEnglish.DAL.Repositories
 {
@@ -29,6 +30,11 @@ namespace MasterYourEnglish.DAL.Repositories
         {
             await _context.Set<T>().AddAsync(entity);
             await _context.SaveChangesAsync();
+        }
+
+        public async Task<IEnumerable<T>> FindAsync(Expression<Func<T, bool>> expression)
+        {
+            return await _dbSet.Where(expression).ToListAsync();
         }
 
         public async Task UpdateAsync(T entity)

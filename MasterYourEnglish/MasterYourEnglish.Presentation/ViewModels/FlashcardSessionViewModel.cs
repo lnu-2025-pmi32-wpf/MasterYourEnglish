@@ -1,27 +1,25 @@
-﻿using MasterYourEnglish.Presentation.ViewModels.Commands;
+﻿using MasterYourEnglish.BLL.DTOs;
+using MasterYourEnglish.BLL.Interfaces;
+using MasterYourEnglish.Presentation.ViewModels.Commands;
+using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 using System.Windows.Input;
 
 namespace MasterYourEnglish.Presentation.ViewModels
 {
-    // DTO for a single card in the session
-    // (This should live in your BLL project)
-    public class FlashcardSessionDto
-    {
-        public string Word { get; set; }
-        public string Transcription { get; set; }
-        public string Definition { get; set; }
-        public string Example { get; set; }
-        public string PartOfSpeech { get; set; }
-    }
-
     public class FlashcardSessionViewModel : ViewModelBase
     {
-        // --- Private Fields ---
-        private List<FlashcardSessionDto> _sessionCards;
-        private int _currentIndex;
+        private readonly IFlashcardBundleService _bundleService;
+        private readonly IFlashcardService _flashcardService; 
+        private readonly ICurrentUserService _currentUserService;
 
-        // --- Public Properties for Binding ---
+        private List<FlashcardSessionDto> _sessionCards;
+        private Dictionary<int, bool> _results;
+        private int _currentIndex;
+        private int _bundleId;
+
         private bool _isFlipped;
         public bool IsFlipped
         {
@@ -43,50 +41,44 @@ namespace MasterYourEnglish.Presentation.ViewModels
             set => SetProperty(ref _progressText, value);
         }
 
-        public string TimerText { get; set; } = "0:00"; // Timer still optional
-
-        // --- Commands ---
+        public event Action<string> NavigationRequested;
         public ICommand FlipCardCommand { get; }
-        public ICommand NextCardCommand { get; }
-        public ICommand PreviousCardCommand { get; }
         public ICommand KnowCommand { get; }
         public ICommand DontKnowCommand { get; }
         public ICommand AddToSavedCommand { get; }
 
-        public FlashcardSessionViewModel(/* BLL Service */)
+        public FlashcardSessionViewModel(
+            IFlashcardBundleService bundleService,
+            IFlashcardService flashcardService,
+            ICurrentUserService currentUserService)
         {
-            _sessionCards = new List<FlashcardSessionDto>();
+            _bundleService = bundleService;
+            _flashcardService = flashcardService;
+            _currentUserService = currentUserService;
 
-            // --- 
-            // THIS IS THE FIX. We wrap the methods in lambdas (e.g., "p => ...")
-            // to match the expected signature. The 'p' (parameter) is ignored.
-            // --- 
+            _sessionCards = new List<FlashcardSessionDto>();
+            _results = new Dictionary<int, bool>();
+
             FlipCardCommand = new RelayCommand(p => IsFlipped = !IsFlipped);
-            NextCardCommand = new RelayCommand(p => NextCard(), p => CanGoNext());
-            PreviousCardCommand = new RelayCommand(p => PreviousCard(), p => CanGoPrevious());
-            KnowCommand = new RelayCommand(p => NextCard(), p => CanGoNext());
-            DontKnowCommand = new RelayCommand(p => NextCard(), p => CanGoNext());
-            AddToSavedCommand = new RelayCommand(p => AddToSaved());
+            AddToSavedCommand = new RelayCommand(p => AddToSaved(), p => CanAddToSaved());
+            KnowCommand = new RelayCommand(p => OnKnow());
+            DontKnowCommand = new RelayCommand(p => OnDontKnow());
         }
 
-        // This is the new method called by MainViewModel
-        public void LoadSession(int bundleId)
+        public async void LoadSession(int bundleId)
         {
-            // In a real app, you'd call:
-            // _sessionCards = await _bllService.GetCardsForBundle(bundleId);
+            _bundleId = bundleId;
 
-            // For now, we load fake data
-            _sessionCards = new List<FlashcardSessionDto>
+            _sessionCards = await _bundleService.GetFlashcardSessionAsync(bundleId);
+
+            if (_sessionCards == null || _sessionCards.Count == 0)
             {
-                new FlashcardSessionDto { Word = "gooning", Transcription = "[/ˈguː.nɪŋ/]", Definition = "behaving in a foolish or silly way; acting like a goon", Example = "\"The kids were gooning around...\"", PartOfSpeech = "verb (informal)" },
-                new FlashcardSessionDto { Word = "Ephemeral", Transcription = "[/əˈfem.ər.əl/]", Definition = "lasting for only a short time", Example = "\"Her success as a singer was ephemeral.\"", PartOfSpeech = "adjective" },
-                new FlashcardSessionDto { Word = "Lethargic", Transcription = "[/ləˈθɑːr.dʒɪk/]", Definition = "having little energy; feeling unwilling and unable to do anything", Example = "\"I was feeling tired and lethargic.\"", PartOfSpeech = "adjective" },
-                new FlashcardSessionDto { Word = "Sycophant", Transcription = "[/ˈsɪk.ə.fænt/]", Definition = "a person who praises important people in an obsequious way to get something from them", Example = "\"The prime minister was surrounded by sycophants.\"", PartOfSpeech = "noun" },
-                new FlashcardSessionDto { Word = "Pulchritude", Transcription = "[/ˈpʌl.krə.tuːd/]", Definition = "beauty, especially physical beauty", Example = "\"The judges were charmed by her pulchritude.\"", PartOfSpeech = "noun (formal)" }
-            };
+                NavigationRequested?.Invoke("Flashcards");
+                return;
+            }
 
-            // Reset the session
             _currentIndex = 0;
+            _results.Clear();
             IsFlipped = false;
             UpdateCurrentCard();
         }
@@ -95,38 +87,54 @@ namespace MasterYourEnglish.Presentation.ViewModels
         {
             CurrentFlashcard = _sessionCards[_currentIndex];
             ProgressText = $"{_currentIndex + 1}/{_sessionCards.Count}";
-            // Re-evaluate if the buttons should be enabled
             CommandManager.InvalidateRequerySuggested();
         }
 
-        // --- Command Logic (These methods are now parameter-less, which is fine) ---
-        private void NextCard()
+        private void OnKnow()
         {
-            if (CanGoNext())
+            _results[CurrentFlashcard.FlashcardId] = true;
+            HandleAdvance();
+        }
+
+        private void OnDontKnow()
+        {
+            _results[CurrentFlashcard.FlashcardId] = false; 
+            HandleAdvance();
+        }
+
+        private async void HandleAdvance()
+        {
+            if (_currentIndex < _sessionCards.Count - 1)
             {
                 _currentIndex++;
-                IsFlipped = false; // Flip back to the front
+                IsFlipped = false;
                 UpdateCurrentCard();
             }
-        }
-        private bool CanGoNext() => _sessionCards.Count > 0 && _currentIndex < _sessionCards.Count - 1;
-
-        private void PreviousCard()
-        {
-            if (CanGoPrevious())
+            else
             {
-                _currentIndex--;
-                IsFlipped = false; // Flip back to the front
-                UpdateCurrentCard();
+                int userId = _currentUserService.CurrentUser.UserId;
+
+                await _bundleService.SaveSessionAttemptAsync(_bundleId, userId, _results);
+
+                int knownCount = _results.Count(r => r.Value == true);
+                NavigationRequested?.Invoke($"SessionResults:{knownCount}:{_sessionCards.Count}");
             }
         }
-        private bool CanGoPrevious() => _currentIndex > 0;
 
-        private void AddToSaved()
+        private bool CanAddToSaved()
         {
-            // In a real app:
-            // await _bllService.AddToSaved(CurrentFlashcard.Id);
-            // For now, it just pretends to do something.
+            return CurrentFlashcard != null;
+        }
+
+        private async void AddToSaved()
+        {
+            if (!CanAddToSaved()) return;
+
+            int userId = _currentUserService.CurrentUser.UserId;
+            int flashcardId = CurrentFlashcard.FlashcardId;
+
+            await _flashcardService.AddToSavedAsync(userId, flashcardId);
+
         }
     }
 }

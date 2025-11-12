@@ -8,7 +8,7 @@
              d:DataContext="{d:DesignInstance Type=vms:FlashcardSessionViewModel}"
              d:DesignHeight="700" d:DesignWidth="900"
              Background="{DynamicResource App.BackgroundBrush}">
-    
+
     <UserControl.Resources>
         <Style x:Key="FlashcardStyle" TargetType="Border">
             <Setter Property="Background" Value="{DynamicResource Sidebar.BackgroundBrush}"/>
@@ -17,7 +17,6 @@
             <Setter Property="CornerRadius" Value="10"/>
             <Setter Property="MinHeight" Value="400"/>
         </Style>
-        
         <Style TargetType="Button" x:Key="ActionButton">
             <Setter Property="FontSize" Value="16"/>
             <Setter Property="FontWeight" Value="SemiBold"/>
@@ -25,10 +24,6 @@
             <Setter Property="Cursor" Value="Hand"/>
             <Setter Property="BorderThickness" Value="0"/>
             <Setter Property="Foreground" Value="White"/>
-        </Style>
-        
-        <Style TargetType="Button" x:Key="NavButton" BasedOn="{StaticResource ActionButton}">
-            <Setter Property="Background" Value="Gray"/>
         </Style>
         <Style TargetType="Button" x:Key="KnowButton" BasedOn="{StaticResource ActionButton}">
             <Setter Property="Background" Value="Green"/>
@@ -39,12 +34,15 @@
         <Style TargetType="Button" x:Key="SaveButton" BasedOn="{StaticResource ActionButton}">
             <Setter Property="Background" Value="Goldenrod"/>
         </Style>
-
     </UserControl.Resources>
 
     <Grid Margin="30">
         <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/> <RowDefinition Height="Auto"/> <RowDefinition Height="*"/>    <RowDefinition Height="Auto"/> </Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
 
         <TextBlock Grid.Row="0" FontSize="28" FontWeight="SemiBold" 
                    Foreground="{DynamicResource Text.PrimaryBrush}" Margin="0,0,0,10">
@@ -53,12 +51,10 @@
         </TextBlock>
 
         <Grid Grid.Row="1" Margin="0,0,0,10">
-            <TextBlock Text="{Binding TimerText}" HorizontalAlignment="Center" 
-                       FontSize="22" FontWeight="Bold"/>
             <TextBlock Text="{Binding ProgressText}" HorizontalAlignment="Right" 
                        FontSize="22" FontWeight="Bold"/>
         </Grid>
-        
+
         <Button Grid.Row="2" Command="{Binding FlipCardCommand}" 
                 HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch">
             <Button.Template>
@@ -72,7 +68,7 @@
                                            TextAlignment="Center"/>
                             </StackPanel>
                         </Border>
-                        
+
                         <Border x:Name="CardBack" Style="{StaticResource FlashcardStyle}" Visibility="Hidden">
                             <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Margin="20">
                                 <TextBlock Text="{Binding CurrentFlashcard.Definition}" FontSize="32" TextWrapping="Wrap"
@@ -84,7 +80,7 @@
                             </StackPanel>
                         </Border>
                     </Grid>
-                    
+
                     <ControlTemplate.Triggers>
                         <DataTrigger Binding="{Binding IsFlipped}" Value="True">
                             <Setter TargetName="CardFront" Property="Visibility" Value="Hidden"/>
@@ -94,18 +90,9 @@
                 </ControlTemplate>
             </Button.Template>
         </Button>
-        
+
         <Grid Grid.Row="3" Margin="0,20,0,0">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="Auto"/>
-            </Grid.ColumnDefinitions>
-
-            <Button Grid.Column="0" Content="Previous" Style="{StaticResource NavButton}"
-                    Command="{Binding PreviousCardCommand}"/>
-
-            <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Center">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
                 <Button Content="Add to Saved" Style="{StaticResource SaveButton}" 
                         Command="{Binding AddToSavedCommand}"/>
                 <Button Content="Don't Know" Style="{StaticResource DontKnowButton}" Margin="10,0"
@@ -113,9 +100,7 @@
                 <Button Content="Know This" Style="{StaticResource KnowButton}"
                         Command="{Binding KnowCommand}"/>
             </StackPanel>
-            
-            <Button Grid.Column="2" Content="Next" Style="{StaticResource NavButton}"
-                    Command="{Binding NextCardCommand}"/>
+
         </Grid>
     </Grid>
 </UserControl>

@@ -37,6 +37,10 @@
                 <views:FlashcardSessionView/>
             </DataTemplate>
 
+            <DataTemplate DataType="{x:Type vms:SessionResultsViewModel}">
+                <views:SessionResultsView/>
+            </DataTemplate>
+
         </ResourceDictionary>
     </Application.Resources>
 </Application>
