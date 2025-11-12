@@ -20,6 +20,7 @@ namespace MasterYourEnglish.Presentation.ViewModels
         private readonly FlashcardSessionViewModel _sessionVm;
         private readonly SessionResultsViewModel _sessionResultsVm;
         private readonly GenerateBundleViewModel _generateBundleVm;
+        private readonly CreateBundleViewModel _createBundleVm;
 
         public MainViewModel(
             SidebarViewModel sidebarViewModel,
@@ -31,7 +32,8 @@ namespace MasterYourEnglish.Presentation.ViewModels
             SavedFlashcardsViewModel savedVm,
             FlashcardSessionViewModel sessionVm,
             SessionResultsViewModel sessionResultsVm,
-            GenerateBundleViewModel generateBundleVm)
+            GenerateBundleViewModel generateBundleVm,
+            CreateBundleViewModel createBundleVm)
         {
             SidebarVm = sidebarViewModel;
             _profileVm = profileVm;
@@ -43,12 +45,14 @@ namespace MasterYourEnglish.Presentation.ViewModels
             _sessionVm = sessionVm;
             _sessionResultsVm = sessionResultsVm;
             _generateBundleVm = generateBundleVm;
+            _createBundleVm = createBundleVm;
 
             SidebarVm.NavigationRequested += OnNavigationRequested;
             _flashcardsVm.NavigationRequested += OnNavigationRequested;
             _sessionResultsVm.NavigationRequested += OnNavigationRequested;
             _sessionVm.NavigationRequested += OnNavigationRequested;
             _savedVm.NavigationRequested += OnNavigationRequested;
+            _createBundleVm.NavigationRequested += OnNavigationRequested;
 
 
             _generateBundleVm.NavigationRequested += OnNavigationRequested;
@@ -101,6 +105,9 @@ namespace MasterYourEnglish.Presentation.ViewModels
                         break;
                     case "GenerateBundle":
                         newPage = _generateBundleVm;
+                        break;
+                    case "CreateBundle":
+                        newPage = _createBundleVm;
                         break;
                 }
             }

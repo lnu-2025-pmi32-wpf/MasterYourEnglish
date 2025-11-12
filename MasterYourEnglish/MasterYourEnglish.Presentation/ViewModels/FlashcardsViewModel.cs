@@ -44,6 +44,7 @@ namespace MasterYourEnglish.Presentation.ViewModels
         public ICommand NavigateToSavedCommand { get; }
         public ICommand StartSessionCommand { get; }
         public ICommand NavigateToGenerateCommand { get; }
+        public ICommand NavigateToCreateCommand { get; }
 
         public FlashcardsViewModel(IFlashcardBundleService bundleService)
         {
@@ -56,6 +57,7 @@ namespace MasterYourEnglish.Presentation.ViewModels
             NavigateToSavedCommand = new RelayCommand(p => NavigationRequested?.Invoke("SavedFlashcards"));
             StartSessionCommand = new RelayCommand(OnStartSession);
             NavigateToGenerateCommand = new RelayCommand(p => NavigationRequested?.Invoke("GenerateBundle"));
+            NavigateToCreateCommand = new RelayCommand(p => NavigationRequested?.Invoke("CreateBundle"));
 
         }
 

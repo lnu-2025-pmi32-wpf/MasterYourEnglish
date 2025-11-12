@@ -18,17 +18,20 @@ namespace MasterYourEnglish.BLL.Services
         private readonly IFlashcardsBundleAttemptRepository _attemptRepository;
         private readonly IRepository<FlashcardAttemptAnswer> _answerRepository;
         private readonly IFlashcardRepository _flashcardRepository;
+        private readonly IRepository<FlashcardBundleItem> _bundleItemRepository;
 
         public FlashcardBundleService(
             IFlashcardBundleRepository bundleRepository,
             IFlashcardsBundleAttemptRepository attemptRepository,
             IRepository<FlashcardAttemptAnswer> answerRepository,
-            IFlashcardRepository flashcardRepository)
+            IFlashcardRepository flashcardRepository,
+            IRepository<FlashcardBundleItem> bundleItemRepository)
         {
             _bundleRepository = bundleRepository;
             _attemptRepository = attemptRepository;
             _answerRepository = answerRepository;
             _flashcardRepository = flashcardRepository;
+            _bundleItemRepository = bundleItemRepository;
         }
 
         public async Task<IEnumerable<FlashcardBundleCardDto>> GetPublishedBundlesAsync(string searchTerm, string sortBy, bool ascending)
@@ -123,6 +126,53 @@ namespace MasterYourEnglish.BLL.Services
                 Example = f.Example ?? "",
                 PartOfSpeech = f.PartOfSpeech ?? ""
             }).ToList();
+        }
+
+        public async Task<int> CreateNewBundleAsync(CreateBundleDto bundleDto, int userId)
+        {
+            // DANGER: This is not transactional. See warning.
+
+            var newBundle = new FlashcardBundle
+            {
+                Title = bundleDto.Title,
+                Description = bundleDto.Description,
+                TopicId = bundleDto.TopicId,
+                DifficultyLevel = bundleDto.DifficultyLevel,
+                CreatedAt = DateTime.UtcNow,
+                IsPublished = true, // User-created bundles are private
+                IsUserCreated = true,
+                CreatedBy = userId,
+                TotalFlashcardsCount = bundleDto.NewFlashcards.Count
+            };
+
+            await _bundleRepository.AddAsync(newBundle);
+            int position = 1;
+            foreach (var cardDto in bundleDto.NewFlashcards)
+            {
+                var newCard = new Flashcard
+                {
+                    Word = cardDto.Word,
+                    Meaning = cardDto.Meaning,
+                    Example = cardDto.Example,
+                    Transcription = cardDto.Transcription,
+                    PartOfSpeech = cardDto.PartOfSpeech,
+                    DifficultyLevel = cardDto.DifficultyLevel,
+                    TopicId = bundleDto.TopicId,
+                    CreatedAt = DateTime.UtcNow,
+                    IsUserCreated = true,
+                    CreatedBy = userId
+                };
+                await _flashcardRepository.AddAsync(newCard);
+                var newItem = new FlashcardBundleItem
+                {
+                    FlashcardsBundleId = newBundle.FlashcardsBundleId,
+                    FlashcardId = newCard.FlashcardId,
+                    Position = position++
+                };
+                await _bundleItemRepository.AddAsync(newItem);
+            }
+
+            return newBundle.FlashcardsBundleId;
         }
     }
 }

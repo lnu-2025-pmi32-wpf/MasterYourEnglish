@@ -74,6 +74,7 @@ namespace MasterYourEnglish.Presentation
             services.AddTransient<RegisterView>();
             services.AddTransient<SessionResultsViewModel>();
             services.AddTransient<GenerateBundleViewModel>();
+            services.AddTransient<CreateBundleViewModel>();
         }
 
         protected override async void OnStartup(StartupEventArgs e)

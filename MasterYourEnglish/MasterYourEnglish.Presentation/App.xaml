@@ -44,6 +44,10 @@
             <DataTemplate DataType="{x:Type vms:GenerateBundleViewModel}">
                 <views:GenerateBundleView/>
             </DataTemplate>
+
+            <DataTemplate DataType="{x:Type vms:CreateBundleViewModel}">
+                <views:CreateBundleView/>
+            </DataTemplate>
         </ResourceDictionary>
     </Application.Resources>
 </Application>

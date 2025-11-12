@@ -9,5 +9,6 @@ namespace MasterYourEnglish.BLL.Interfaces
         Task<List<FlashcardSessionDto>> GetFlashcardSessionAsync(int bundleId);
         Task SaveSessionAttemptAsync(int bundleId, int userId, Dictionary<int, bool> results);
         Task<List<FlashcardSessionDto>> GetGeneratedSessionAsync(int userId, List<string> levels, Dictionary<int, int> topicRequests);
+        Task<int> CreateNewBundleAsync(CreateBundleDto bundleDto, int userId);
     }
 }
