@@ -7,6 +7,7 @@ MasterYourEnglish focuses on personalization, flexibility, and engagement in the
 ## Features
 
 ### 🎴 Flashcards
+
 - Browse word cards with translations
 - Create custom flashcards with words, translations, images, and audio
 - Organize cards by categories and themes (Food, Travel, Work, etc.)
@@ -14,17 +15,20 @@ MasterYourEnglish focuses on personalization, flexibility, and engagement in the
 - Mark cards as "Know/Don't Know"
 
 ### 📝 Thematic Tests
+
 - Multiple question types: multiple choice, fill in the blanks, matching
 - Instant feedback with explanations
 - Track test results by theme
 - View correct answers with detailed explanations
 
 ### 🎲 Test Generator
+
 - Create custom tests from selected themes and difficulty levels
 - Configure number of questions and question types
 - Generate random tests based on your preferences
 
 ### 📊 Statistics & Progress Tracking
+
 - Track number of learned words
 - View test results by theme
 - Visualize progress with charts and diagrams
@@ -32,6 +36,7 @@ MasterYourEnglish focuses on personalization, flexibility, and engagement in the
 - Monitor overall learning statistics
 
 ### ⚙️ Customization
+
 - Bilingual interface (Ukrainian/English)
 - Light/Dark theme support
 - Adjustable font sizes
@@ -57,7 +62,7 @@ MasterYourEnglish focuses on personalization, flexibility, and engagement in the
 ## Technologies
 
 - Platform: .NET 9
-- Frontend: Blazor Desktop
+- Frontend: WPF
 - Database: PostgreSQL
 - ORM: Entity Framework Core
 
