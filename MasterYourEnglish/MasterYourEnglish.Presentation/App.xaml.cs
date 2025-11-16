@@ -1,28 +1,28 @@
-﻿using MasterYourEnglish.BLL.Interfaces;
-using MasterYourEnglish.BLL.Services;
-using MasterYourEnglish.DAL.Data;
-using MasterYourEnglish.DAL.Entities;
-using MasterYourEnglish.DAL.Interfaces;
-using MasterYourEnglish.DAL.Repositories;
-using MasterYourEnglish.Presentation.ViewModels;
-using MasterYourEnglish.Presentation.Views;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
-using System.IO;
-using System.Windows;
-
-namespace MasterYourEnglish.Presentation
+﻿namespace MasterYourEnglish.Presentation
 {
+    using System.IO;
+    using System.Windows;
+    using MasterYourEnglish.BLL.Interfaces;
+    using MasterYourEnglish.BLL.Services;
+    using MasterYourEnglish.DAL.Data;
+    using MasterYourEnglish.DAL.Entities;
+    using MasterYourEnglish.DAL.Interfaces;
+    using MasterYourEnglish.DAL.Repositories;
+    using MasterYourEnglish.Presentation.ViewModels;
+    using MasterYourEnglish.Presentation.Views;
+    using Microsoft.EntityFrameworkCore;
+    using Microsoft.Extensions.Configuration;
+    using Microsoft.Extensions.DependencyInjection;
+    using Microsoft.Extensions.Hosting;
+
     public partial class App : Application
     {
-        private static IHost _host;
-        private Window _currentWindow;
+        private static IHost host;
+        private Window currentWindow;
 
         public App()
         {
-            _host = Host.CreateDefaultBuilder()
+            host = Host.CreateDefaultBuilder()
                 .ConfigureAppConfiguration((context, config) =>
                 {
                     config.SetBasePath(Directory.GetCurrentDirectory());
@@ -30,9 +30,22 @@ namespace MasterYourEnglish.Presentation
                 })
                 .ConfigureServices((context, services) =>
                 {
-                    ConfigureServices(context.Configuration, services);
+                    this.ConfigureServices(context.Configuration, services);
                 })
                 .Build();
+        }
+
+        protected override async void OnStartup(StartupEventArgs e)
+        {
+            await host.StartAsync();
+            this.ShowLoginView();
+        }
+
+        protected override async void OnExit(ExitEventArgs e)
+        {
+            await host.StopAsync();
+            host.Dispose();
+            base.OnExit(e);
         }
 
         private void ConfigureServices(IConfiguration configuration, IServiceCollection services)
@@ -77,69 +90,59 @@ namespace MasterYourEnglish.Presentation
             services.AddTransient<CreateBundleViewModel>();
         }
 
-        protected override async void OnStartup(StartupEventArgs e)
-        {
-            await _host.StartAsync();
-            ShowLoginView();
-        }
-
         private void ShowLoginView()
         {
             var loginViewModel = new LoginViewModel(
-                _host.Services.GetRequiredService<IAuthService>(),
-                onLoginSuccess: () => {
-                    ShowMainWindow();
+                host.Services.GetRequiredService<IAuthService>(),
+                onLoginSuccess: () =>
+                {
+                    this.ShowMainWindow();
                 },
-                onShowRegister: () => {
-                    ShowRegisterView();
-                }
-            );
+                onShowRegister: () =>
+                {
+                    this.ShowRegisterView();
+                });
 
             var newWindow = new LoginView(loginViewModel);
 
             newWindow.Show();
 
-            _currentWindow?.Close();
+            this.currentWindow?.Close();
 
-            _currentWindow = newWindow;
+            this.currentWindow = newWindow;
         }
+
         private void ShowRegisterView()
         {
             var registerViewModel = new RegisterViewModel(
-                _host.Services.GetRequiredService<IAuthService>(),
-                onRegisterSuccess: () => {
-                    ShowLoginView();
+                host.Services.GetRequiredService<IAuthService>(),
+                onRegisterSuccess: () =>
+                {
+                    this.ShowLoginView();
                 },
-                onShowLogin: () => {
-                    ShowLoginView();
-                }
-            );
+                onShowLogin: () =>
+                {
+                    this.ShowLoginView();
+                });
 
             var newWindow = new RegisterView(registerViewModel);
 
             newWindow.Show();
 
-            _currentWindow?.Close();
+            this.currentWindow?.Close();
 
-            _currentWindow = newWindow;
+            this.currentWindow = newWindow;
         }
 
         private void ShowMainWindow()
         {
-            var newWindow = _host.Services.GetRequiredService<MainWindow>();
+            var newWindow = host.Services.GetRequiredService<MainWindow>();
 
             newWindow.Show();
 
-            _currentWindow?.Close();
+            this.currentWindow?.Close();
 
-            _currentWindow = newWindow;
-        }
-
-        protected override async void OnExit(ExitEventArgs e)
-        {
-            await _host.StopAsync();
-            _host.Dispose();
-            base.OnExit(e);
+            this.currentWindow = newWindow;
         }
     }
 }

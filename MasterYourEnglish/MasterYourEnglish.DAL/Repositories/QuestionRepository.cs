@@ -1,17 +1,20 @@
-﻿using Microsoft.EntityFrameworkCore;
-using MasterYourEnglish.DAL.Data;
-using MasterYourEnglish.DAL.Entities;
-using MasterYourEnglish.DAL.Interfaces;
-
-namespace MasterYourEnglish.DAL.Repositories
+﻿namespace MasterYourEnglish.DAL.Repositories
 {
+    using MasterYourEnglish.DAL.Data;
+    using MasterYourEnglish.DAL.Entities;
+    using MasterYourEnglish.DAL.Interfaces;
+    using Microsoft.EntityFrameworkCore;
+
     public class QuestionRepository : Repository<Question>, IQuestionRepository
     {
-        public QuestionRepository(ApplicationDbContext context) : base(context) { }
+        public QuestionRepository(ApplicationDbContext context)
+            : base(context)
+        {
+        }
 
         public async Task<IEnumerable<Question>> GetQuestionsByDifficultyLevel(string difficultyLevel)
         {
-            return await _dbSet
+            return await this.dbSet
                 .Where(q => q.DifficultyLevel == difficultyLevel)
                 .OrderBy(q => q.CreatedAt)
                 .ToListAsync();
@@ -19,7 +22,7 @@ namespace MasterYourEnglish.DAL.Repositories
 
         public async Task<IEnumerable<Question>> GetQuestionsByTopic(int topicId)
         {
-            return await _dbSet
+            return await this.dbSet
                 .Where(q => q.TopicId == topicId)
                 .OrderBy(q => q.CreatedAt)
                 .ToListAsync();

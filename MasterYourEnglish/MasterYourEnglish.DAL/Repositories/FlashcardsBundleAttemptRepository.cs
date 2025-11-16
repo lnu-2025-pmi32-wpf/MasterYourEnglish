@@ -1,19 +1,20 @@
-﻿using Microsoft.EntityFrameworkCore;
-using MasterYourEnglish.DAL.Data;
-using MasterYourEnglish.DAL.Entities;
-using MasterYourEnglish.DAL.Interfaces;
-
-namespace MasterYourEnglish.DAL.Repositories
+﻿namespace MasterYourEnglish.DAL.Repositories
 {
+    using MasterYourEnglish.DAL.Data;
+    using MasterYourEnglish.DAL.Entities;
+    using MasterYourEnglish.DAL.Interfaces;
+    using Microsoft.EntityFrameworkCore;
+
     public class FlashcardsBundleAttemptRepository : Repository<FlashcardBundleAttempt>, IFlashcardsBundleAttemptRepository
     {
-        public FlashcardsBundleAttemptRepository(ApplicationDbContext context) : base(context)
+        public FlashcardsBundleAttemptRepository(ApplicationDbContext context)
+            : base(context)
         {
         }
 
         public async Task<IEnumerable<FlashcardBundleAttempt>> GetAttemptsForUserAsync(int userId)
         {
-            return await _dbSet
+            return await this.dbSet
                 .Where(a => a.UserId == userId)
                 .OrderByDescending(a => a.StartedAt)
                 .ToListAsync();
@@ -21,7 +22,7 @@ namespace MasterYourEnglish.DAL.Repositories
 
         public async Task<FlashcardBundleAttempt?> GetAttemptWithDetailsAsync(int attemptId)
         {
-            return await _dbSet
+            return await this.dbSet
 
                 .Include(a => a.FlashcardsBundle)
                 .Include(a => a.FlashcardsAttemptAnswers)

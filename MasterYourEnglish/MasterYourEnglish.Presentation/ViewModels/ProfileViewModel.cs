@@ -1,102 +1,97 @@
-﻿using MasterYourEnglish.BLL.Interfaces;
-using MasterYourEnglish.Presentation.ViewModels.Commands;
-using System.Threading.Tasks;
-using System.Windows.Input;
-
-namespace MasterYourEnglish.Presentation.ViewModels
+﻿namespace MasterYourEnglish.Presentation.ViewModels
 {
+    using System.Threading.Tasks;
+    using System.Windows.Input;
+    using MasterYourEnglish.BLL.Interfaces;
+    using MasterYourEnglish.Presentation.ViewModels.Commands;
+
     public class ProfileViewModel : ViewModelBase
     {
-        private readonly IUserService _userService;
-        private readonly ICurrentUserService _currentUserService;
+        private readonly IUserService userService;
+        private readonly ICurrentUserService currentUserService;
+        private string fullName;
+        private string firstName;
+        private string lastName;
+        private string email;
+        private string username;
 
-        private string _fullName;
+        public ProfileViewModel(IUserService userService, ICurrentUserService currentUserService)
+        {
+            this.userService = userService;
+            this.currentUserService = currentUserService;
+            this.LoadUserProfile();
+            this.SaveChangesCommand = new RelayCommand(async () => await this.OnSaveChanges());
+        }
+
         public string FullName
         {
-            get => _fullName;
-            set => SetProperty(ref _fullName, value);
+            get => this.fullName;
+            set => this.SetProperty(ref this.fullName, value);
         }
 
-        private string _firstName;
         public string FirstName
         {
-            get => _firstName;
+            get => this.firstName;
             set
             {
-                SetProperty(ref _firstName, value);
-                UpdateFullName();
+                this.SetProperty(ref this.firstName, value);
+                this.UpdateFullName();
             }
         }
 
-        private string _lastName;
         public string LastName
         {
-            get => _lastName;
+            get => this.lastName;
             set
             {
-                SetProperty(ref _lastName, value);
-                UpdateFullName();
+                this.SetProperty(ref this.lastName, value);
+                this.UpdateFullName();
             }
         }
 
-        private string _email;
         public string Email
         {
-            get => _email;
-            set => SetProperty(ref _email, value);
+            get => this.email;
+            set => this.SetProperty(ref this.email, value);
         }
 
-        private string _username;
         public string Username
         {
-            get => _username;
-            set => SetProperty(ref _username, value);
+            get => this.username;
+            set => this.SetProperty(ref this.username, value);
         }
 
         public ICommand SaveChangesCommand { get; }
 
-        public ProfileViewModel(IUserService userService, ICurrentUserService currentUserService)
-        {
-            _userService = userService;
-            _currentUserService = currentUserService;
-
-            LoadUserProfile();
-
-            SaveChangesCommand = new RelayCommand(async () => await OnSaveChanges());
-        }
-
         private void LoadUserProfile()
         {
-            var currentUser = _currentUserService.CurrentUser;
+            var currentUser = this.currentUserService.CurrentUser;
             if (currentUser == null)
             {
-                FirstName = "Error";
-                LastName = "User not found";
+                this.FirstName = "Error";
+                this.LastName = "User not found";
                 return;
             }
 
-            FirstName = currentUser.FirstName;
-            LastName = currentUser.LastName;
-            Email = currentUser.Email;
-            Username = currentUser.UserName;
-
+            this.FirstName = currentUser.FirstName;
+            this.LastName = currentUser.LastName;
+            this.Email = currentUser.Email;
+            this.Username = currentUser.UserName;
         }
 
         private void UpdateFullName()
         {
-            FullName = $"{FirstName} {LastName}";
+            this.FullName = $"{this.FirstName} {this.LastName}";
         }
 
         private async Task OnSaveChanges()
         {
-            int currentUserId = _currentUserService.CurrentUser.UserId;
-
-            bool success = await _userService.UpdateProfileAsync(currentUserId, this.FirstName, this.LastName);
-
+            int currentUserId = this.currentUserService.CurrentUser.UserId;
+            bool success = await this.userService.UpdateProfileAsync(currentUserId, this.FirstName, this.LastName);
             if (success)
             {
-                _currentUserService.CurrentUser.FirstName = this.FirstName;
-                _currentUserService.CurrentUser.LastName = this.LastName;
+                this.currentUserService.CurrentUser.FirstName = this.FirstName;
+                this.currentUserService.CurrentUser.LastName = this.LastName;
             }
             else
             {
