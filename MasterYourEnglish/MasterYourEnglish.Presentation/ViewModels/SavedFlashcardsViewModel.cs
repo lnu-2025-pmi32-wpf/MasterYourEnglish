@@ -1,133 +1,139 @@
-﻿using MasterYourEnglish.BLL.Interfaces;
-using MasterYourEnglish.BLL.Models.DTOs;
-using MasterYourEnglish.Presentation.ViewModels.Commands;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Linq;
-using System.Threading.Tasks;
-using System.Windows;
-using System.Windows.Input;
-
-namespace MasterYourEnglish.Presentation.ViewModels
+﻿namespace MasterYourEnglish.Presentation.ViewModels
 {
+    using System;
+    using System.Collections.Generic;
+    using System.Collections.ObjectModel;
+    using System.Linq;
+    using System.Threading.Tasks;
+    using System.Windows;
+    using System.Windows.Input;
+    using MasterYourEnglish.BLL.Interfaces;
+    using MasterYourEnglish.BLL.Models.DTOs;
+    using MasterYourEnglish.Presentation.ViewModels.Commands;
+
     public class SavedFlashcardsViewModel : ViewModelBase, IPageViewModel
     {
-        private readonly IFlashcardService _flashcardService;
-        private readonly ICurrentUserService _currentUserService;
-        private bool _isLoading = false;
+        private readonly IFlashcardService flashcardService;
+        private readonly ICurrentUserService currentUserService;
+        private bool isLoading = false;
+        private SavedFlashcardDto selectedFlashcard;
+        private string searchTerm;
+        private string selectedSortOption;
 
-        public event Action<string> NavigationRequested;
-        public ObservableCollection<SavedFlashcardDto> SavedFlashcards { get; }
-
-        private SavedFlashcardDto _selectedFlashcard;
-        public SavedFlashcardDto SelectedFlashcard
+        public SavedFlashcardsViewModel(IFlashcardService flashcardService, ICurrentUserService currentUserService)
         {
-            get => _selectedFlashcard;
-            set => SetProperty(ref _selectedFlashcard, value);
+            this.flashcardService = flashcardService;
+            this.currentUserService = currentUserService;
+            this.SavedFlashcards = new ObservableCollection<SavedFlashcardDto>();
+            this.SortOptions = new List<string> { "Name (A-Z)", "Name (Z-A)", "Level (Easy-Hard)", "Level (Hard-Easy)" };
+            this.selectedSortOption = this.SortOptions.First();
+            this.MarkAsLearnedCommand = new RelayCommand(p => this.OnMarkAsLearned(), p => this.SelectedFlashcard != null);
+            this.RemoveFromSavedCommand = new RelayCommand(p => this.OnRemoveFromSaved(), p => this.SelectedFlashcard != null);
+            this.StartTestYourselfCommand = new RelayCommand(
+                p => this.NavigationRequested?.Invoke("TestSavedFlashcards"));
         }
 
-        private string _searchTerm;
+        public event Action<string> NavigationRequested;
+
+        public ObservableCollection<SavedFlashcardDto> SavedFlashcards { get; }
+
+        public SavedFlashcardDto SelectedFlashcard
+        {
+            get => this.selectedFlashcard;
+            set => this.SetProperty(ref this.selectedFlashcard, value);
+        }
+
         public string SearchTerm
         {
-            get => _searchTerm;
+            get => this.searchTerm;
             set
             {
-                SetProperty(ref _searchTerm, value);
-                Task.Run(LoadDataAsync);
+                this.SetProperty(ref this.searchTerm, value);
+                Task.Run(this.LoadDataAsync);
             }
         }
 
         public List<string> SortOptions { get; }
-        private string _selectedSortOption;
+
         public string SelectedSortOption
         {
-            get => _selectedSortOption;
+            get => this.selectedSortOption;
             set
             {
-                SetProperty(ref _selectedSortOption, value);
-                LoadDataAsync();
+                this.SetProperty(ref this.selectedSortOption, value);
+                this.LoadDataAsync();
             }
         }
 
         public ICommand MarkAsLearnedCommand { get; }
+
         public ICommand RemoveFromSavedCommand { get; }
+
         public ICommand StartTestYourselfCommand { get; }
-
-        public SavedFlashcardsViewModel(IFlashcardService flashcardService, ICurrentUserService currentUserService)
-        {
-            _flashcardService = flashcardService;
-            _currentUserService = currentUserService;
-
-            SavedFlashcards = new ObservableCollection<SavedFlashcardDto>();
-
-            SortOptions = new List<string> { "Name (A-Z)", "Name (Z-A)", "Level (Easy-Hard)", "Level (Hard-Easy)" };
-            _selectedSortOption = SortOptions.First();
-
-            MarkAsLearnedCommand = new RelayCommand(p => OnMarkAsLearned(), p => SelectedFlashcard != null);
-            RemoveFromSavedCommand = new RelayCommand(p => OnRemoveFromSaved(), p => SelectedFlashcard != null);
-            StartTestYourselfCommand = new RelayCommand(
-                p => NavigationRequested?.Invoke("TestSavedFlashcards")
-            );
-        }
 
         public async Task LoadDataAsync()
         {
-            if (_isLoading) return;
+            if (this.isLoading)
+            {
+                return;
+            }
 
-            if (_currentUserService.CurrentUser == null) return;
+            if (this.currentUserService.CurrentUser == null)
+            {
+                return;
+            }
 
-            _isLoading = true;
-
+            this.isLoading = true;
             try
             {
-                int userId = _currentUserService.CurrentUser.UserId;
-
-                string sortBy = _selectedSortOption.Contains("Name") ? "Name" : "Level";
-                bool ascending = _selectedSortOption.Contains("(A-Z)") || _selectedSortOption.Contains("(Easy-Hard)");
-
-                var flashcards = await _flashcardService.GetSavedFlashcardsAsync(userId, SearchTerm, sortBy, ascending);
-
+                int userId = this.currentUserService.CurrentUser.UserId;
+                string sortBy = this.selectedSortOption.Contains("Name") ? "Name" : "Level";
+                bool ascending = this.selectedSortOption.Contains("(A-Z)") || this.selectedSortOption.Contains("(Easy-Hard)");
+                var flashcards = await this.flashcardService.GetSavedFlashcardsAsync(userId, this.SearchTerm, sortBy, ascending);
                 Application.Current.Dispatcher.Invoke(() =>
                 {
-                    SavedFlashcards.Clear();
-                    foreach (var card in flashcards)
-                    {
-                        SavedFlashcards.Add(card);
-                    }
+                this.SavedFlashcards.Clear();
+                foreach (var card in flashcards)
+                {
+                    this.SavedFlashcards.Add(card);
+                }
 
-                    if (SavedFlashcards.Count > 0)
+                if (this.SavedFlashcards.Count > 0)
                     {
-                        SelectedFlashcard = SavedFlashcards[0];
+                        this.SelectedFlashcard = this.SavedFlashcards[0];
                     }
                     else
                     {
-                        SelectedFlashcard = null;
+                        this.SelectedFlashcard = null;
                     }
                 });
             }
             finally
             {
-                _isLoading = false;
+                this.isLoading = false;
             }
         }
 
         private void OnMarkAsLearned()
         {
-            OnRemoveFromSaved();
+            this.OnRemoveFromSaved();
         }
 
         private async void OnRemoveFromSaved()
         {
-            if (SelectedFlashcard == null) return;
+            if (this.SelectedFlashcard == null)
+            {
+                return;
+            }
 
-            int userId = _currentUserService.CurrentUser.UserId;
-            int cardId = SelectedFlashcard.FlashcardId;
-            var cardToRemove = SelectedFlashcard;
+            int userId = this.currentUserService.CurrentUser.UserId;
+            int cardId = this.SelectedFlashcard.FlashcardId;
+            var cardToRemove = this.SelectedFlashcard;
 
-            await _flashcardService.RemoveFromSavedAsync(userId, cardId);
+            await this.flashcardService.RemoveFromSavedAsync(userId, cardId);
 
-            SavedFlashcards.Remove(cardToRemove);
-            SelectedFlashcard = SavedFlashcards.FirstOrDefault();
+            this.SavedFlashcards.Remove(cardToRemove);
+            this.SelectedFlashcard = this.SavedFlashcards.FirstOrDefault();
         }
     }
 }

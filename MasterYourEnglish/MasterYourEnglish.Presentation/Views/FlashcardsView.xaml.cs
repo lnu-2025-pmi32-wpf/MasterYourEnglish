@@ -1,17 +1,16 @@
-﻿using System.Windows.Controls;
-
-namespace MasterYourEnglish.Presentation.Views
+﻿namespace MasterYourEnglish.Presentation.Views
 {
+    using System.Windows.Controls;
+
     public partial class FlashcardsView : UserControl
     {
         public FlashcardsView()
         {
-            InitializeComponent();
+            this.InitializeComponent();
         }
 
         private void Button_Click(object sender, System.Windows.RoutedEventArgs e)
         {
-
         }
     }
 }

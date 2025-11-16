@@ -1,133 +1,140 @@
-﻿using MasterYourEnglish.BLL.DTOs;
-using MasterYourEnglish.BLL.Interfaces;
-using MasterYourEnglish.BLL.Models.DTOs;
-using MasterYourEnglish.Presentation.ViewModels.Commands;
-using System;
-using System.Collections.ObjectModel;
-using System.Linq;
-using System.Threading.Tasks;
-using System.Windows.Input;
-
-namespace MasterYourEnglish.Presentation.ViewModels
+﻿namespace MasterYourEnglish.Presentation.ViewModels
 {
+    using System;
+    using System.Collections.ObjectModel;
+    using System.Linq;
+    using System.Threading.Tasks;
+    using System.Windows.Input;
+    using MasterYourEnglish.BLL.DTOs;
+    using MasterYourEnglish.BLL.Interfaces;
+    using MasterYourEnglish.BLL.Models.DTOs;
+    using MasterYourEnglish.Presentation.ViewModels.Commands;
+
     public class CreateBundleViewModel : ViewModelBase, IPageViewModel
     {
-        private readonly ITopicService _topicService;
-        private readonly IFlashcardBundleService _bundleService;
-        private readonly ICurrentUserService _currentUserService;
+        private readonly ITopicService topicService;
+        private readonly IFlashcardBundleService bundleService;
+        private readonly ICurrentUserService currentUserService;
+
+        private string title = "My New Bundle";
+        private string description = string.Empty;
+        private TopicDto selectedTopic;
+        private string difficulty = "B2";
+        private string newWord;
+        private string newMeaning;
+        private string newExample;
+        private string newTranscription;
+        private string newPartOfSpeech;
+
+        public CreateBundleViewModel(ITopicService topicService, IFlashcardBundleService bundleService, ICurrentUserService currentUserService)
+        {
+            this.topicService = topicService;
+            this.bundleService = bundleService;
+            this.currentUserService = currentUserService;
+
+            this.NewFlashcards = new ObservableCollection<CreateFlashcardDto>();
+            this.AvailableTopics = new ObservableCollection<TopicDto>();
+
+            this.AddCardCommand = new RelayCommand(p => this.OnAddCard(), p => this.CanAddCard());
+            this.RemoveCardCommand = new RelayCommand(this.OnRemoveCard);
+            this.SaveBundleCommand = new RelayCommand(async p => await this.OnSaveBundle(), p => this.CanSaveBundle());
+            this.CancelCommand = new RelayCommand(p => this.NavigationRequested?.Invoke("Flashcards"));
+        }
+
         public event Action<string> NavigationRequested;
 
-        private string _title = "My New Bundle";
-        public string Title { get => _title; set => SetProperty(ref _title, value); }
+        public string Title { get => this.title; set => this.SetProperty(ref this.title, value); }
 
-        private string _description = "";
-        public string Description { get => _description; set => SetProperty(ref _description, value); }
+        public string Description { get => this.description; set => this.SetProperty(ref this.description, value); }
 
-        private TopicDto _selectedTopic;
-        public TopicDto SelectedTopic { get => _selectedTopic; set => SetProperty(ref _selectedTopic, value); }
+        public TopicDto SelectedTopic { get => this.selectedTopic; set => this.SetProperty(ref this.selectedTopic, value); }
 
         public ObservableCollection<TopicDto> AvailableTopics { get; }
 
-        private string _difficulty = "B2";
-        public string Difficulty { get => _difficulty; set => SetProperty(ref _difficulty, value); }
+        public string Difficulty { get => this.difficulty; set => this.SetProperty(ref this.difficulty, value); }
 
-        private string _newWord;
-        public string NewWord { get => _newWord; set => SetProperty(ref _newWord, value); }
+        public string NewWord { get => this.newWord; set => this.SetProperty(ref this.newWord, value); }
 
-        private string _newMeaning;
-        public string NewMeaning { get => _newMeaning; set => SetProperty(ref _newMeaning, value); }
+        public string NewMeaning { get => this.newMeaning; set => this.SetProperty(ref this.newMeaning, value); }
 
-        private string _newExample;
-        public string NewExample { get => _newExample; set => SetProperty(ref _newExample, value); }
+        public string NewExample { get => this.newExample; set => this.SetProperty(ref this.newExample, value); }
 
-        private string _newTranscription;
-        public string NewTranscription { get => _newTranscription; set => SetProperty(ref _newTranscription, value); }
+        public string NewTranscription { get => this.newTranscription; set => this.SetProperty(ref this.newTranscription, value); }
 
-        private string _newPartOfSpeech;
-        public string NewPartOfSpeech { get => _newPartOfSpeech; set => SetProperty(ref _newPartOfSpeech, value); }
+        public string NewPartOfSpeech { get => this.newPartOfSpeech; set => this.SetProperty(ref this.newPartOfSpeech, value); }
 
         public ObservableCollection<CreateFlashcardDto> NewFlashcards { get; }
 
         public ICommand AddCardCommand { get; }
+
         public ICommand RemoveCardCommand { get; }
+
         public ICommand SaveBundleCommand { get; }
+
         public ICommand CancelCommand { get; }
-
-        public CreateBundleViewModel(ITopicService topicService, IFlashcardBundleService bundleService, ICurrentUserService currentUserService)
-        {
-            _topicService = topicService;
-            _bundleService = bundleService;
-            _currentUserService = currentUserService;
-
-            NewFlashcards = new ObservableCollection<CreateFlashcardDto>();
-            AvailableTopics = new ObservableCollection<TopicDto>();
-
-            AddCardCommand = new RelayCommand(p => OnAddCard(), p => CanAddCard());
-            RemoveCardCommand = new RelayCommand(OnRemoveCard);
-            SaveBundleCommand = new RelayCommand(async p => await OnSaveBundle(), p => CanSaveBundle());
-            CancelCommand = new RelayCommand(p => NavigationRequested?.Invoke("Flashcards"));
-        }
 
         public async Task LoadDataAsync()
         {
-            var topicDtos = await _topicService.GetAllTopicsAsync();
-            AvailableTopics.Clear();
+            var topicDtos = await this.topicService.GetAllTopicsAsync();
+            this.AvailableTopics.Clear();
             foreach (var dto in topicDtos)
             {
-                AvailableTopics.Add(dto);
+                this.AvailableTopics.Add(dto);
             }
-            SelectedTopic = AvailableTopics.FirstOrDefault();
+
+            this.SelectedTopic = this.AvailableTopics.FirstOrDefault();
         }
 
-        private bool CanAddCard() => !string.IsNullOrWhiteSpace(NewWord) && !string.IsNullOrWhiteSpace(NewMeaning);
+        private bool CanAddCard() => !string.IsNullOrWhiteSpace(this.NewWord) && !string.IsNullOrWhiteSpace(this.NewMeaning);
+
         private void OnAddCard()
         {
             var newCard = new CreateFlashcardDto
             {
                 Word = this.NewWord,
                 Meaning = this.NewMeaning,
-                Example = this.NewExample ?? "",
+                Example = this.NewExample ?? string.Empty,
                 DifficultyLevel = this.Difficulty,
-
-                Transcription = this.NewTranscription ?? "",
-                PartOfSpeech = this.NewPartOfSpeech ?? ""
+                Transcription = this.NewTranscription ?? string.Empty,
+                PartOfSpeech = this.NewPartOfSpeech ?? string.Empty,
             };
 
-            NewFlashcards.Add(newCard);
+            this.NewFlashcards.Add(newCard);
 
-            NewWord = "";
-            NewMeaning = "";
-            NewExample = "";
+            this.NewWord = string.Empty;
+            this.NewMeaning = string.Empty;
+            this.NewExample = string.Empty;
 
-            NewTranscription = "";
-            NewPartOfSpeech = "";
+            this.NewTranscription = string.Empty;
+            this.NewPartOfSpeech = string.Empty;
         }
 
         private void OnRemoveCard(object parameter)
         {
             if (parameter is CreateFlashcardDto card)
             {
-                NewFlashcards.Remove(card);
+                this.NewFlashcards.Remove(card);
             }
         }
 
-        private bool CanSaveBundle() => NewFlashcards.Count > 0 && !string.IsNullOrWhiteSpace(Title) && SelectedTopic != null;
+        private bool CanSaveBundle() => this.NewFlashcards.Count > 0 && !string.IsNullOrWhiteSpace(this.Title) && this.SelectedTopic != null;
+
         private async Task OnSaveBundle()
         {
             var newBundleDto = new CreateBundleDto
             {
                 Title = this.Title,
-                Description = this.Description ?? "",
+                Description = this.Description ?? string.Empty,
                 TopicId = this.SelectedTopic.TopicId,
                 DifficultyLevel = this.Difficulty,
-                NewFlashcards = this.NewFlashcards.ToList()
+                NewFlashcards = this.NewFlashcards.ToList(),
             };
 
-            int userId = _currentUserService.CurrentUser.UserId;
+            int userId = this.currentUserService.CurrentUser.UserId;
 
-            int newBundleId = await _bundleService.CreateNewBundleAsync(newBundleDto, userId);
+            int newBundleId = await this.bundleService.CreateNewBundleAsync(newBundleDto, userId);
 
-            NavigationRequested?.Invoke($"FlashcardSession:{newBundleId}");
+            this.NavigationRequested?.Invoke($"FlashcardSession:{newBundleId}");
         }
     }
 }

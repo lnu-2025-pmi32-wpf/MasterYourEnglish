@@ -1,13 +1,23 @@
-﻿using System;
-using System.Windows.Input;
-
-namespace MasterYourEnglish.Presentation.ViewModels.Commands
+﻿namespace MasterYourEnglish.Presentation.ViewModels.Commands
 {
+    using System;
+    using System.Windows.Input;
+
     public class RelayCommand : ICommand
     {
-        private readonly Action<object> _execute;
+        private readonly Action<object> execute;
+        private readonly Predicate<object> canExecute;
 
-        private readonly Predicate<object> _canExecute;
+        public RelayCommand(Action<object> execute, Predicate<object> canExecute = null)
+        {
+            this.execute = execute ?? throw new ArgumentNullException(nameof(execute));
+            this.canExecute = canExecute;
+        }
+
+        public RelayCommand(Action execute)
+            : this(p => execute(), null)
+        {
+        }
 
         public event EventHandler CanExecuteChanged
         {
@@ -15,24 +25,14 @@ namespace MasterYourEnglish.Presentation.ViewModels.Commands
             remove => CommandManager.RequerySuggested -= value;
         }
 
-        public RelayCommand(Action<object> execute, Predicate<object> canExecute = null)
-        {
-            _execute = execute ?? throw new ArgumentNullException(nameof(execute));
-            _canExecute = canExecute;
-        }
-
-        public RelayCommand(Action execute) : this(p => execute(), null)
-        {
-        }
-
         public bool CanExecute(object parameter)
         {
-            return _canExecute == null || _canExecute(parameter);
+            return this.canExecute == null || this.canExecute(parameter);
         }
 
         public void Execute(object parameter)
         {
-            _execute(parameter);
+            this.execute(parameter);
         }
     }
 }

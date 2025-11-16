@@ -1,24 +1,24 @@
-﻿using MasterYourEnglish.BLL.Interfaces;
-using MasterYourEnglish.BLL.Models.DTOs;
-using MasterYourEnglish.DAL.Interfaces;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-
-namespace MasterYourEnglish.BLL.Services
+﻿namespace MasterYourEnglish.BLL.Services
 {
+    using System.Collections.Generic;
+    using System.Linq;
+    using System.Threading.Tasks;
+    using MasterYourEnglish.BLL.Interfaces;
+    using MasterYourEnglish.BLL.Models.DTOs;
+    using MasterYourEnglish.DAL.Interfaces;
+
     public class TestService : ITestService
     {
-        private readonly ITestRepository _testRepository;
+        private readonly ITestRepository testRepository;
 
         public TestService(ITestRepository testRepository)
         {
-            _testRepository = testRepository;
+            this.testRepository = testRepository;
         }
 
         public async Task<IEnumerable<TestCardDto>> GetPublishedTestsAsync(string searchTerm, string sortBy, bool ascending)
         {
-            var tests = await _testRepository.GetPublishedTestsWithDetailsAsync();
+            var tests = await this.testRepository.GetPublishedTestsWithDetailsAsync();
 
             if (!string.IsNullOrWhiteSpace(searchTerm))
             {
@@ -49,8 +49,8 @@ namespace MasterYourEnglish.BLL.Services
                 TestId = t.TestId,
                 TestName = t.Title,
                 CategoryName = t.Topic?.Name ?? "General",
-                Description = t.Description ?? "",
-                DifficultyLevel = t.DifficultyLevel ?? "N/A"
+                Description = t.Description ?? string.Empty,
+                DifficultyLevel = t.DifficultyLevel ?? "N/A",
             });
         }
 

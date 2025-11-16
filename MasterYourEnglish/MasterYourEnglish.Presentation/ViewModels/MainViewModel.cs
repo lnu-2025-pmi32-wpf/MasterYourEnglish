@@ -1,26 +1,23 @@
-﻿using MasterYourEnglish.BLL.DTOs; 
-using System;
-using System.Collections.Generic; 
-using System.Threading.Tasks;
-
-namespace MasterYourEnglish.Presentation.ViewModels
+﻿namespace MasterYourEnglish.Presentation.ViewModels
 {
+    using System;
+    using System.Collections.Generic;
+    using System.Threading.Tasks;
+    using MasterYourEnglish.BLL.DTOs;
+
     public class MainViewModel : ViewModelBase
     {
-        private ViewModelBase _currentViewModel;
-        public ViewModelBase CurrentViewModel { get => _currentViewModel; set => SetProperty(ref _currentViewModel, value); }
-        public SidebarViewModel SidebarVm { get; }
-
-        private readonly ProfileViewModel _profileVm;
-        private readonly FlashcardsViewModel _flashcardsVm;
-        private readonly TestListViewModel _testListVm;
-        private readonly StatisticsViewModel _statsVm;
-        private readonly SettingsViewModel _settingsVm;
-        private readonly SavedFlashcardsViewModel _savedVm;
-        private readonly FlashcardSessionViewModel _sessionVm;
-        private readonly SessionResultsViewModel _sessionResultsVm;
-        private readonly GenerateBundleViewModel _generateBundleVm;
-        private readonly CreateBundleViewModel _createBundleVm;
+        private readonly ProfileViewModel profileVm;
+        private readonly FlashcardsViewModel flashcardsVm;
+        private readonly TestListViewModel testListVm;
+        private readonly StatisticsViewModel statsVm;
+        private readonly SettingsViewModel settingsVm;
+        private readonly SavedFlashcardsViewModel savedVm;
+        private readonly FlashcardSessionViewModel sessionVm;
+        private readonly SessionResultsViewModel sessionResultsVm;
+        private readonly GenerateBundleViewModel generateBundleVm;
+        private readonly CreateBundleViewModel createBundleVm;
+        private ViewModelBase currentViewModel;
 
         public MainViewModel(
             SidebarViewModel sidebarViewModel,
@@ -35,50 +32,54 @@ namespace MasterYourEnglish.Presentation.ViewModels
             GenerateBundleViewModel generateBundleVm,
             CreateBundleViewModel createBundleVm)
         {
-            SidebarVm = sidebarViewModel;
-            _profileVm = profileVm;
-            _flashcardsVm = flashcardsVm;
-            _testListVm = testListVm;
-            _statsVm = statsVm;
-            _settingsVm = settingsVm;
-            _savedVm = savedVm;
-            _sessionVm = sessionVm;
-            _sessionResultsVm = sessionResultsVm;
-            _generateBundleVm = generateBundleVm;
-            _createBundleVm = createBundleVm;
-
-            SidebarVm.NavigationRequested += OnNavigationRequested;
-            _flashcardsVm.NavigationRequested += OnNavigationRequested;
-            _sessionResultsVm.NavigationRequested += OnNavigationRequested;
-            _sessionVm.NavigationRequested += OnNavigationRequested;
-            _savedVm.NavigationRequested += OnNavigationRequested;
-            _createBundleVm.NavigationRequested += OnNavigationRequested;
-
-
-            _generateBundleVm.NavigationRequested += OnNavigationRequested;
-            _generateBundleVm.SessionGenerated += OnSessionGenerated; 
-
-            CurrentViewModel = _profileVm;
-            LoadPageData(CurrentViewModel);
+            this.SidebarVm = sidebarViewModel;
+            this.profileVm = profileVm;
+            this.flashcardsVm = flashcardsVm;
+            this.testListVm = testListVm;
+            this.statsVm = statsVm;
+            this.settingsVm = settingsVm;
+            this.savedVm = savedVm;
+            this.sessionVm = sessionVm;
+            this.sessionResultsVm = sessionResultsVm;
+            this.generateBundleVm = generateBundleVm;
+            this.createBundleVm = createBundleVm;
+            this.SidebarVm.NavigationRequested += this.OnNavigationRequested;
+            this.flashcardsVm.NavigationRequested += this.OnNavigationRequested;
+            this.sessionResultsVm.NavigationRequested += this.OnNavigationRequested;
+            this.sessionVm.NavigationRequested += this.OnNavigationRequested;
+            this.savedVm.NavigationRequested += this.OnNavigationRequested;
+            this.createBundleVm.NavigationRequested += this.OnNavigationRequested;
+            this.generateBundleVm.NavigationRequested += this.OnNavigationRequested;
+            this.generateBundleVm.SessionGenerated += this.OnSessionGenerated;
+            this.CurrentViewModel = this.profileVm;
+            this.LoadPageData(this.CurrentViewModel);
         }
+
+        public ViewModelBase CurrentViewModel
+        {
+            get => this.currentViewModel;
+            set => this.SetProperty(ref this.currentViewModel, value);
+        }
+
+        public SidebarViewModel SidebarVm { get; }
 
         private void OnSessionGenerated(List<FlashcardSessionDto> cards)
         {
-            _sessionVm.LoadSession(cards);
-            CurrentViewModel = _sessionVm;
+            this.sessionVm.LoadSession(cards);
+            this.CurrentViewModel = this.sessionVm;
         }
 
         private void OnNavigationRequested(string navigationKey)
         {
-            ViewModelBase newPage = CurrentViewModel;
+            ViewModelBase newPage = this.CurrentViewModel;
 
             if (navigationKey.StartsWith("FlashcardSession:"))
             {
                 var idString = navigationKey.Split(':')[1];
                 if (int.TryParse(idString, out int bundleId))
                 {
-                    _sessionVm.LoadSession(bundleId);
-                    newPage = _sessionVm;
+                    this.sessionVm.LoadSession(bundleId);
+                    newPage = this.sessionVm;
                 }
             }
             else if (navigationKey.StartsWith("SessionResults:"))
@@ -86,36 +87,36 @@ namespace MasterYourEnglish.Presentation.ViewModels
                 var parts = navigationKey.Split(':');
                 int known = int.Parse(parts[1]);
                 int total = int.Parse(parts[2]);
-                _sessionResultsVm.ShowResults(known, total);
-                newPage = _sessionResultsVm;
+                this.sessionResultsVm.ShowResults(known, total);
+                newPage = this.sessionResultsVm;
             }
             else
             {
                 switch (navigationKey)
                 {
-                    case "Profile": newPage = _profileVm; break;
-                    case "Flashcards": newPage = _flashcardsVm; break;
-                    case "Tests": newPage = _testListVm; break;
-                    case "Statistics": newPage = _statsVm; break;
-                    case "Settings": newPage = _settingsVm; break;
-                    case "SavedFlashcards": newPage = _savedVm; break;
+                    case "Profile": newPage = this.profileVm; break;
+                    case "Flashcards": newPage = this.flashcardsVm; break;
+                    case "Tests": newPage = this.testListVm; break;
+                    case "Statistics": newPage = this.statsVm; break;
+                    case "Settings": newPage = this.settingsVm; break;
+                    case "SavedFlashcards": newPage = this.savedVm; break;
                     case "TestSavedFlashcards":
-                        _sessionVm.LoadSessionFromSaved();
-                        newPage = _sessionVm;
+                        this.sessionVm.LoadSessionFromSaved();
+                        newPage = this.sessionVm;
                         break;
                     case "GenerateBundle":
-                        newPage = _generateBundleVm;
+                        newPage = this.generateBundleVm;
                         break;
                     case "CreateBundle":
-                        newPage = _createBundleVm;
+                        newPage = this.createBundleVm;
                         break;
                 }
             }
 
-            if (newPage != CurrentViewModel)
+            if (newPage != this.CurrentViewModel)
             {
-                CurrentViewModel = newPage;
-                LoadPageData(CurrentViewModel);
+                this.CurrentViewModel = newPage;
+                this.LoadPageData(this.CurrentViewModel);
             }
         }
 

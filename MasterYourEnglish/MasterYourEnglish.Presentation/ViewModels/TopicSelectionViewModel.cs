@@ -1,25 +1,27 @@
-﻿using MasterYourEnglish.BLL.DTOs;
-using MasterYourEnglish.BLL.Models.DTOs;
-
-namespace MasterYourEnglish.Presentation.ViewModels
+﻿namespace MasterYourEnglish.Presentation.ViewModels
 {
+    using MasterYourEnglish.BLL.DTOs;
+    using MasterYourEnglish.BLL.Models.DTOs;
+
     public class TopicSelectionViewModel : ViewModelBase
     {
-        public int TopicId { get; }
-        public string Name { get; }
-
-        private int _cardCount;
-        public int CardCount
-        {
-            get => _cardCount;
-            set => SetProperty(ref _cardCount, value);
-        }
+        private int cardCount;
 
         public TopicSelectionViewModel(TopicDto topic)
         {
-            TopicId = topic.TopicId;
-            Name = topic.Name;
-            CardCount = 0;
+            this.TopicId = topic.TopicId;
+            this.Name = topic.Name;
+            this.CardCount = 0;
+        }
+
+        public int TopicId { get; }
+
+        public string Name { get; }
+
+        public int CardCount
+        {
+            get => this.cardCount;
+            set => this.SetProperty(ref this.cardCount, value);
         }
     }
 }

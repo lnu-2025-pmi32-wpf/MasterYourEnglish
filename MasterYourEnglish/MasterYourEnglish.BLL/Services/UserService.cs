@@ -1,27 +1,27 @@
-﻿using MasterYourEnglish.BLL.Interfaces;
-using MasterYourEnglish.DAL.Entities;
-using MasterYourEnglish.DAL.Interfaces;
-using System.Threading.Tasks;
-
-namespace MasterYourEnglish.BLL.Services
+﻿namespace MasterYourEnglish.BLL.Services
 {
+    using System.Threading.Tasks;
+    using MasterYourEnglish.BLL.Interfaces;
+    using MasterYourEnglish.DAL.Entities;
+    using MasterYourEnglish.DAL.Interfaces;
+
     public class UserService : IUserService
     {
-        private readonly IUserRepository _userRepository;
+        private readonly IUserRepository userRepository;
 
         public UserService(IUserRepository userRepository)
         {
-            _userRepository = userRepository;
+            this.userRepository = userRepository;
         }
 
         public async Task<User> GetUserByIdAsync(int userId)
         {
-            return await _userRepository.GetByIdAsync(userId);
+            return await this.userRepository.GetByIdAsync(userId);
         }
 
         public async Task<bool> UpdateProfileAsync(int userId, string firstName, string lastName)
         {
-            var user = await _userRepository.GetByIdAsync(userId);
+            var user = await this.userRepository.GetByIdAsync(userId);
             if (user == null)
             {
                 return false;
@@ -30,7 +30,7 @@ namespace MasterYourEnglish.BLL.Services
             user.FirstName = firstName;
             user.LastName = lastName;
 
-            _userRepository.UpdateAsync(user); 
+            this.userRepository.UpdateAsync(user);
 
             return true;
         }

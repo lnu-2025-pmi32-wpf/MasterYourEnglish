@@ -1,13 +1,13 @@
-﻿using MasterYourEnglish.DAL.Data;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Design;
-using Microsoft.Extensions.Configuration;
-using System;
-using System.IO;
-using System.Linq;
-
-namespace MasterYourEnglish.DAL
+﻿namespace MasterYourEnglish.DAL
 {
+    using System;
+    using System.IO;
+    using System.Linq;
+    using MasterYourEnglish.DAL.Data;
+    using Microsoft.EntityFrameworkCore;
+    using Microsoft.EntityFrameworkCore.Design;
+    using Microsoft.Extensions.Configuration;
+
     public class DesignTimeDbContextFactory : IDesignTimeDbContextFactory<ApplicationDbContext>
     {
         public ApplicationDbContext CreateDbContext(string[] args)
@@ -51,7 +51,7 @@ namespace MasterYourEnglish.DAL
                 throw new InvalidOperationException("Could not find 'DefaultConnection' in appsettings.json");
             }
 
-            builder.UseNpgsql(connectionString); 
+            builder.UseNpgsql(connectionString);
 
             return new ApplicationDbContext(builder.Options);
         }

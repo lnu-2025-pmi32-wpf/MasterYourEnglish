@@ -1,32 +1,53 @@
-﻿using MasterYourEnglish.DAL.Entities;
-using Microsoft.EntityFrameworkCore;
-
-namespace MasterYourEnglish.DAL.Data
+﻿namespace MasterYourEnglish.DAL.Data
 {
+    using MasterYourEnglish.DAL.Entities;
+    using Microsoft.EntityFrameworkCore;
+
     public class ApplicationDbContext : DbContext
     {
+        // 1. КОНСТРУКТОР (має бути першим)
+        public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
+            : base(options)
+        {
+        }
+
+        // 2. ВЛАСТИВОСТІ (DbSet'и йдуть після конструктора)
         public DbSet<Flashcard> Flashcards { get; set; }
+
         public DbSet<User> Users { get; set; }
+
         public DbSet<Topic> Topics { get; set; }
+
         public DbSet<FlashcardBundle> FlashcardBundles { get; set; }
+
         public DbSet<FlashcardBundleItem> FlashcardBundleItems { get; set; }
+
         public DbSet<SavedFlashcard> SavedFlashcards { get; set; }
+
         public DbSet<FlashcardBundleAttempt> FlashcardBundleAttempts { get; set; }
+
         public DbSet<FlashcardAttemptAnswer> FlashcardAttemptAnswers { get; set; }
+
         public DbSet<Test> Tests { get; set; }
+
         public DbSet<Question> Questions { get; set; }
+
         public DbSet<QuestionOption> QuestionOptions { get; set; }
+
         public DbSet<TestQuestion> TestQuestions { get; set; }
+
         public DbSet<TestAttempt> TestAttempts { get; set; }
+
         public DbSet<TestAttemptAnswer> TestAttemptAnswers { get; set; }
+
         public DbSet<TestAttemptAnswerSelectedOption> TestAttemptAnswerSelectedOptions { get; set; }
 
-        public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options) { }
-
+        // 3. МЕТОДИ (OnModelCreating йде останнім, після властивостей)
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
 
+            // ... логіка Fluent API залишається без змін
             modelBuilder.Entity<User>().HasKey(e => e.UserId);
             modelBuilder.Entity<Topic>().HasKey(e => e.TopicId);
             modelBuilder.Entity<Flashcard>().HasKey(e => e.FlashcardId);
@@ -40,7 +61,6 @@ namespace MasterYourEnglish.DAL.Data
             modelBuilder.Entity<FlashcardBundleAttempt>().HasKey(e => e.AttemptId);
             modelBuilder.Entity<QuestionOption>().HasKey(e => e.OptionId);
 
-
             modelBuilder.Entity<FlashcardBundleItem>()
                 .HasKey(fbi => new { fbi.FlashcardsBundleId, fbi.FlashcardId });
 
@@ -53,7 +73,6 @@ namespace MasterYourEnglish.DAL.Data
             modelBuilder.Entity<TestAttemptAnswerSelectedOption>()
                 .HasKey(taaso => new { taaso.AttemptAnswersId, taaso.SelectedOptionId });
 
-
             modelBuilder.Entity<FlashcardBundleItem>()
                 .HasOne(fbi => fbi.FlashcardsBundle)
                 .WithMany(b => b.FlashcardsBundleItems)
@@ -65,7 +84,6 @@ namespace MasterYourEnglish.DAL.Data
                 .WithMany(fbi => fbi.FlashcardsBundleItems)
                 .HasForeignKey(fbi => fbi.FlashcardId)
                 .OnDelete(DeleteBehavior.Restrict);
-
 
             modelBuilder.Entity<TestQuestion>()
                 .HasOne(tq => tq.Test)

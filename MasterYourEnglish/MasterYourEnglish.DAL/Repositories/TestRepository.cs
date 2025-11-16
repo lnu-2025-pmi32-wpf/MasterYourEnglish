@@ -1,17 +1,20 @@
-﻿using MasterYourEnglish.DAL.Data;
-using MasterYourEnglish.DAL.Entities;
-using MasterYourEnglish.DAL.Interfaces;
-using Microsoft.EntityFrameworkCore;
-
-namespace MasterYourEnglish.DAL.Repositories
+﻿namespace MasterYourEnglish.DAL.Repositories
 {
+    using MasterYourEnglish.DAL.Data;
+    using MasterYourEnglish.DAL.Entities;
+    using MasterYourEnglish.DAL.Interfaces;
+    using Microsoft.EntityFrameworkCore;
+
     public class TestRepository : Repository<Test>, ITestRepository
     {
-        public TestRepository(ApplicationDbContext context) : base(context) {}
+        public TestRepository(ApplicationDbContext context)
+            : base(context)
+        {
+        }
 
         public async Task<IEnumerable<Test>> GetTestsByDifficultyLevelAsync(string difficultyLevel)
         {
-            return await _dbSet
+            return await this.dbSet
                 .Where(t => t.DifficultyLevel == difficultyLevel && t.IsPublished)
                 .OrderBy(t => t.Title)
                 .ToListAsync();
@@ -19,7 +22,7 @@ namespace MasterYourEnglish.DAL.Repositories
 
         public async Task<IEnumerable<Test>> GetTestsByTopicAsync(int topicId)
         {
-            return await _dbSet
+            return await this.dbSet
                 .Where(t => t.TopicId == topicId && t.IsPublished)
                 .Include(t => t.Topic)
                 .OrderBy(t => t.Title)
@@ -28,7 +31,7 @@ namespace MasterYourEnglish.DAL.Repositories
 
         public async Task<IEnumerable<Test>> GetTestsCreatedByUserAsync(int userId)
         {
-            return await _dbSet
+            return await this.dbSet
                 .Where(t => t.CreatedBy == userId)
                 .OrderByDescending(t => t.CreatedAt)
                 .ToListAsync();
@@ -36,30 +39,28 @@ namespace MasterYourEnglish.DAL.Repositories
 
         public async Task<Test> GetTestWithDetailsAsync(int testId)
         {
-
-            return await _dbSet
-                .Include(t => t.TestQuestions)          
-                    .ThenInclude(tq => tq.Question)    
-                        .ThenInclude(q => q.QuestionOptions) 
+            return await this.dbSet
+                .Include(t => t.TestQuestions)
+                    .ThenInclude(tq => tq.Question)
+                        .ThenInclude(q => q.QuestionOptions)
                 .FirstAsync(t => t.TestId == testId);
         }
 
         public async Task<IEnumerable<Test>> GetPublishedTestsWithTopicAsync()
         {
-            return await _dbSet
+            return await this.dbSet
                 .Where(t => t.IsPublished)
-                .Include(t => t.Topic) 
+                .Include(t => t.Topic)
                 .OrderBy(t => t.Title)
                 .ToListAsync();
         }
 
         public async Task<IEnumerable<Test>> GetPublishedTestsWithDetailsAsync()
         {
-            return await _dbSet
-                .Where(t => t.IsPublished) 
-                .Include(t => t.Topic)     
+            return await this.dbSet
+                .Where(t => t.IsPublished)
+                .Include(t => t.Topic)
                 .ToListAsync();
         }
-
     }
 }

@@ -2,11 +2,16 @@
 {
     public class CreateFlashcardDto
     {
-        public string Word { get; set; } = "";
-        public string Meaning { get; set; } = "";
-        public string PartOfSpeech { get; set; } = "";
-        public string Example { get; set; } = "";
-        public string Transcription { get; set; } = "";
+        public string Word { get; set; } = string.Empty;
+
+        public string Meaning { get; set; } = string.Empty;
+
+        public string PartOfSpeech { get; set; } = string.Empty;
+
+        public string Example { get; set; } = string.Empty;
+
+        public string Transcription { get; set; } = string.Empty;
+
         public string DifficultyLevel { get; set; } = "B2";
     }
 }

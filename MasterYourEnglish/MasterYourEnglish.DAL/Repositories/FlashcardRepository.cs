@@ -1,17 +1,20 @@
-﻿using Microsoft.EntityFrameworkCore;
-using MasterYourEnglish.DAL.Data;
-using MasterYourEnglish.DAL.Entities;
-using MasterYourEnglish.DAL.Interfaces;
-
-namespace MasterYourEnglish.DAL.Repositories
+﻿namespace MasterYourEnglish.DAL.Repositories
 {
+    using MasterYourEnglish.DAL.Data;
+    using MasterYourEnglish.DAL.Entities;
+    using MasterYourEnglish.DAL.Interfaces;
+    using Microsoft.EntityFrameworkCore;
+
     public class FlashcardRepository : Repository<Flashcard>, IFlashcardRepository
     {
-        public FlashcardRepository(ApplicationDbContext context) : base(context) { }
+        public FlashcardRepository(ApplicationDbContext context)
+            : base(context)
+        {
+        }
 
         public async Task<IEnumerable<Flashcard>> GetFlashcardsByDifficultyLevel(string difficultyLevel)
         {
-            return await _dbSet
+            return await this.dbSet
                 .Where(f => f.DifficultyLevel == difficultyLevel)
                 .OrderBy(f => f.Word)
                 .ToListAsync();
@@ -19,7 +22,7 @@ namespace MasterYourEnglish.DAL.Repositories
 
         public async Task<IEnumerable<Flashcard>> GetFlashcardsByTopic(int topicId)
         {
-            return await _dbSet
+            return await this.dbSet
                 .Where(f => f.TopicId == topicId)
                 .OrderBy(f => f.Word)
                 .ToListAsync();
@@ -27,7 +30,7 @@ namespace MasterYourEnglish.DAL.Repositories
 
         public async Task<IEnumerable<Flashcard>> GetSavedFlashcardsForUserAsync(int userId)
         {
-            return await _context.SavedFlashcards
+            return await this.context.SavedFlashcards
                 .Where(sf => sf.UserId == userId)
                 .Include(sf => sf.Flashcard)
                     .ThenInclude(f => f.Topic)
@@ -37,7 +40,7 @@ namespace MasterYourEnglish.DAL.Repositories
 
         public async Task<List<Flashcard>> GetFlashcardsByCriteriaAsync(int topicId, List<string> levels, int count)
         {
-            IQueryable<Flashcard> query = _dbSet.Where(f => f.TopicId == topicId);
+            IQueryable<Flashcard> query = this.dbSet.Where(f => f.TopicId == topicId);
 
             if (levels != null && levels.Count > 0)
             {

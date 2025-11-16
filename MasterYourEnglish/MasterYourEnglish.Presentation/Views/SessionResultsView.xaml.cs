@@ -1,12 +1,12 @@
-﻿using System.Windows.Controls;
-
-namespace MasterYourEnglish.Presentation.Views
+﻿namespace MasterYourEnglish.Presentation.Views
 {
+    using System.Windows.Controls;
+
     public partial class SessionResultsView : UserControl
     {
         public SessionResultsView()
         {
-            InitializeComponent();
+            this.InitializeComponent();
         }
     }
 }

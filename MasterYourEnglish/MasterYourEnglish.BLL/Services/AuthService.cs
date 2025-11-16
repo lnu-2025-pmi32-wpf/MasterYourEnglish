@@ -1,25 +1,25 @@
-﻿using MasterYourEnglish.BLL.Interfaces;
-using MasterYourEnglish.BLL.Models.DTOs;
-using MasterYourEnglish.DAL.Entities;
-using MasterYourEnglish.DAL.Interfaces;
-using System.Threading.Tasks;
-
-namespace MasterYourEnglish.BLL.Services
+﻿namespace MasterYourEnglish.BLL.Services
 {
+    using System.Threading.Tasks;
+    using MasterYourEnglish.BLL.Interfaces;
+    using MasterYourEnglish.BLL.Models.DTOs;
+    using MasterYourEnglish.DAL.Entities;
+    using MasterYourEnglish.DAL.Interfaces;
+
     public class AuthService : IAuthService
     {
-        private readonly IUserRepository _userRepository;
-        private readonly ICurrentUserService _currentUserService;
+        private readonly IUserRepository userRepository;
+        private readonly ICurrentUserService currentUserService;
 
         public AuthService(IUserRepository userRepository, ICurrentUserService currentUserService)
         {
-            _userRepository = userRepository;
-            _currentUserService = currentUserService;
+            this.userRepository = userRepository;
+            this.currentUserService = currentUserService;
         }
 
         public async Task<bool> LoginAsync(string username, string password)
         {
-            var user = await _userRepository.GetByUsernameAsync(username);
+            var user = await this.userRepository.GetByUsernameAsync(username);
             if (user == null)
             {
                 return false;
@@ -29,7 +29,7 @@ namespace MasterYourEnglish.BLL.Services
 
             if (isPasswordValid)
             {
-                _currentUserService.SetCurrentUser(user);
+                this.currentUserService.SetCurrentUser(user);
                 return true;
             }
 
@@ -38,7 +38,7 @@ namespace MasterYourEnglish.BLL.Services
 
         public async Task<bool> RegisterAsync(RegisterDto registerDto)
         {
-            var existingUser = await _userRepository.GetByUsernameAsync(registerDto.Username);
+            var existingUser = await this.userRepository.GetByUsernameAsync(registerDto.Username);
             if (existingUser != null)
             {
                 return false;
@@ -54,10 +54,10 @@ namespace MasterYourEnglish.BLL.Services
                 Email = registerDto.Email,
                 PasswordHash = passwordHash,
                 CreatedAt = System.DateTime.UtcNow,
-                Role = "user"
+                Role = "user",
             };
 
-            await _userRepository.AddAsync(newUser);
+            await this.userRepository.AddAsync(newUser);
 
             return true;
         }

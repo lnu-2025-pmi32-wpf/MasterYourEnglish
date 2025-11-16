@@ -1,76 +1,78 @@
-﻿using MasterYourEnglish.BLL.Interfaces;
-using MasterYourEnglish.BLL.Models.DTOs;
-using MasterYourEnglish.Presentation.ViewModels.Commands;
-using System;
-using System.Threading.Tasks;
-using System.Windows.Controls; 
-using System.Windows.Input;
-
-namespace MasterYourEnglish.Presentation.ViewModels
+﻿namespace MasterYourEnglish.Presentation.ViewModels
 {
+    using System;
+    using System.Threading.Tasks;
+    using System.Windows.Controls;
+    using System.Windows.Input;
+    using MasterYourEnglish.BLL.Interfaces;
+    using MasterYourEnglish.BLL.Models.DTOs;
+    using MasterYourEnglish.Presentation.ViewModels.Commands;
+
     public class RegisterViewModel : ViewModelBase
     {
-        private readonly IAuthService _authService;
-        private readonly Action _onRegisterSuccess;
-        private readonly Action _onShowLogin;
-
-        private string _firstName = "";
-        public string FirstName
-        {
-            get => _firstName;
-            set => SetProperty(ref _firstName, value);
-        }
-
-        private string _lastName = "";
-        public string LastName
-        {
-            get => _lastName;
-            set => SetProperty(ref _lastName, value);
-        }
-
-        private string _username = "";
-        public string Username
-        {
-            get => _username;
-            set => SetProperty(ref _username, value);
-        }
-
-        private string _email = "";
-        public string Email
-        {
-            get => _email;
-            set => SetProperty(ref _email, value);
-        }
-
-        private string _errorMessage = "";
-        public string ErrorMessage
-        {
-            get => _errorMessage;
-            set => SetProperty(ref _errorMessage, value);
-        }
-
-        public ICommand RegisterCommand { get; }
-        public ICommand ShowLoginCommand { get; }
+        private readonly IAuthService authService;
+        private readonly Action onRegisterSuccess;
+        private readonly Action onShowLogin;
+        private string firstName = string.Empty;
+        private string lastName = string.Empty;
+        private string username = string.Empty;
+        private string email = string.Empty;
+        private string errorMessage = string.Empty;
 
         public RegisterViewModel(IAuthService authService, Action onRegisterSuccess, Action onShowLogin)
         {
-            _authService = authService;
-            _onRegisterSuccess = onRegisterSuccess;
-            _onShowLogin = onShowLogin;
-
-            RegisterCommand = new RelayCommand(async (param) => await OnRegister(param));
-            ShowLoginCommand = new RelayCommand(p => _onShowLogin());
+            this.authService = authService;
+            this.onRegisterSuccess = onRegisterSuccess;
+            this.onShowLogin = onShowLogin;
+            this.RegisterCommand = new RelayCommand(async (param) => await this.OnRegister(param));
+            this.ShowLoginCommand = new RelayCommand(p => this.onShowLogin());
         }
+
+        public string FirstName
+        {
+            get => this.firstName;
+            set => this.SetProperty(ref this.firstName, value);
+        }
+
+        public string LastName
+        {
+            get => this.lastName;
+            set => this.SetProperty(ref this.lastName, value);
+        }
+
+        public string Username
+        {
+            get => this.username;
+            set => this.SetProperty(ref this.username, value);
+        }
+
+        public string Email
+        {
+            get => this.email;
+            set => this.SetProperty(ref this.email, value);
+        }
+
+        public string ErrorMessage
+        {
+            get => this.errorMessage;
+            set => this.SetProperty(ref this.errorMessage, value);
+        }
+
+        public ICommand RegisterCommand { get; }
+
+        public ICommand ShowLoginCommand { get; }
 
         private async Task OnRegister(object parameter)
         {
-            if (parameter is not PasswordBox passwordBox) return;
+            if (parameter is not PasswordBox passwordBox)
+            {
+                return;
+            }
 
             string password = passwordBox.Password;
-
-            if (string.IsNullOrWhiteSpace(FirstName) || string.IsNullOrWhiteSpace(Username) || string.IsNullOrWhiteSpace(password))
+            if (string.IsNullOrWhiteSpace(this.FirstName) || string.IsNullOrWhiteSpace(this.Username) || string.IsNullOrWhiteSpace(password))
             {
-                ErrorMessage = "Please fill out all required fields.";
+                this.ErrorMessage = "Please fill out all required fields.";
                 return;
             }
 
@@ -80,18 +82,17 @@ namespace MasterYourEnglish.Presentation.ViewModels
                 LastName = this.LastName,
                 Username = this.Username,
                 Email = this.Email,
-                Password = password
+                Password = password,
             };
 
-            bool success = await _authService.RegisterAsync(registerDto);
-
+            bool success = await this.authService.RegisterAsync(registerDto);
             if (success)
             {
-                _onRegisterSuccess();
+                this.onRegisterSuccess();
             }
             else
             {
-                ErrorMessage = "Registration failed. Username may be taken.";
+                this.ErrorMessage = "Registration failed. Username may be taken.";
             }
         }
     }
