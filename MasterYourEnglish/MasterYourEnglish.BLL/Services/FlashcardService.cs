@@ -1,37 +1,37 @@
-﻿using MasterYourEnglish.BLL.DTOs;
-using MasterYourEnglish.BLL.Interfaces;
-using MasterYourEnglish.BLL.Models.DTOs;
-using MasterYourEnglish.DAL.Entities;
-using MasterYourEnglish.DAL.Interfaces;
-using Microsoft.EntityFrameworkCore;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-
-namespace MasterYourEnglish.BLL.Services
+﻿namespace MasterYourEnglish.BLL.Services
 {
+    using System.Collections.Generic;
+    using System.Linq;
+    using System.Threading.Tasks;
+    using MasterYourEnglish.BLL.DTOs;
+    using MasterYourEnglish.BLL.Interfaces;
+    using MasterYourEnglish.BLL.Models.DTOs;
+    using MasterYourEnglish.DAL.Entities;
+    using MasterYourEnglish.DAL.Interfaces;
+    using Microsoft.EntityFrameworkCore;
+
     public class FlashcardService : IFlashcardService
     {
-        private readonly IFlashcardRepository _flashcardRepository;
-        private readonly IRepository<SavedFlashcard> _savedFlashcardRepository;
+        private readonly IFlashcardRepository flashcardRepository;
+        private readonly IRepository<SavedFlashcard> savedFlashcardRepository;
 
         public FlashcardService(
             IFlashcardRepository flashcardRepository,
             IRepository<SavedFlashcard> savedFlashcardRepository)
         {
-            _flashcardRepository = flashcardRepository;
-            _savedFlashcardRepository = savedFlashcardRepository;
+            this.flashcardRepository = flashcardRepository;
+            this.savedFlashcardRepository = savedFlashcardRepository;
         }
 
         public async Task<IEnumerable<SavedFlashcardDto>> GetSavedFlashcardsAsync(int userId, string searchTerm, string sortBy, bool ascending)
         {
-            var flashcards = await _flashcardRepository.GetSavedFlashcardsForUserAsync(userId);
+            var flashcards = await this.flashcardRepository.GetSavedFlashcardsForUserAsync(userId);
 
             if (!string.IsNullOrWhiteSpace(searchTerm))
             {
                 string lowerSearch = searchTerm.ToLower();
                 flashcards = flashcards.Where(f => f.Word.ToLower().Contains(lowerSearch) ||
-                                                 (f.Meaning ?? "").ToLower().Contains(lowerSearch));
+                                                 (f.Meaning ?? string.Empty).ToLower().Contains(lowerSearch));
             }
 
             switch (sortBy)
@@ -54,32 +54,31 @@ namespace MasterYourEnglish.BLL.Services
                 FlashcardId = f.FlashcardId,
                 Word = f.Word,
                 Difficulty = f.DifficultyLevel ?? "N/A",
-                PartOfSpeech = f.PartOfSpeech ?? "",
-                Transcription = f.Transcription ?? "",
-                Meaning = f.Meaning ?? "",
-                Example = f.Example ?? ""
+                PartOfSpeech = f.PartOfSpeech ?? string.Empty,
+                Transcription = f.Transcription ?? string.Empty,
+                Meaning = f.Meaning ?? string.Empty,
+                Example = f.Example ?? string.Empty,
             });
         }
 
         public async Task<bool> RemoveFromSavedAsync(int userId, int flashcardId)
         {
-            var savedEntry = await _savedFlashcardRepository.FindAsync(
-                sf => sf.UserId == userId && sf.FlashcardId == flashcardId
-            );
+            var savedEntry = await this.savedFlashcardRepository.FindAsync(
+                sf => sf.UserId == userId && sf.FlashcardId == flashcardId);
 
             if (savedEntry.FirstOrDefault() != null)
             {
-                _savedFlashcardRepository.DeleteAsync(savedEntry.First());
+                this.savedFlashcardRepository.DeleteAsync(savedEntry.First());
                 return true;
             }
+
             return false;
         }
 
         public async Task<bool> AddToSavedAsync(int userId, int flashcardId)
         {
-            var existing = await _savedFlashcardRepository.FindAsync(
-                sf => sf.UserId == userId && sf.FlashcardId == flashcardId
-            );
+            var existing = await this.savedFlashcardRepository.FindAsync(
+                sf => sf.UserId == userId && sf.FlashcardId == flashcardId);
 
             if (existing.Any())
             {
@@ -89,17 +88,17 @@ namespace MasterYourEnglish.BLL.Services
             var newSavedFlashcard = new SavedFlashcard
             {
                 UserId = userId,
-                FlashcardId = flashcardId
+                FlashcardId = flashcardId,
             };
 
-            await _savedFlashcardRepository.AddAsync(newSavedFlashcard);
+            await this.savedFlashcardRepository.AddAsync(newSavedFlashcard);
 
             return true;
         }
 
         public async Task<List<FlashcardSessionDto>> GetSavedFlashcardsForSessionAsync(int userId)
         {
-            var flashcards = await _flashcardRepository.GetSavedFlashcardsForUserAsync(userId);
+            var flashcards = await this.flashcardRepository.GetSavedFlashcardsForUserAsync(userId);
 
             if (flashcards == null)
             {
@@ -110,10 +109,10 @@ namespace MasterYourEnglish.BLL.Services
             {
                 FlashcardId = f.FlashcardId,
                 Word = f.Word,
-                Transcription = f.Transcription ?? "",
-                Definition = f.Meaning ?? "",
-                Example = f.Example ?? "",
-                PartOfSpeech = f.PartOfSpeech ?? ""
+                Transcription = f.Transcription ?? string.Empty,
+                Definition = f.Meaning ?? string.Empty,
+                Example = f.Example ?? string.Empty,
+                PartOfSpeech = f.PartOfSpeech ?? string.Empty,
             })
             .ToList();
         }

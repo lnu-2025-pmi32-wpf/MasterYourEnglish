@@ -1,144 +1,155 @@
-﻿using MasterYourEnglish.BLL.DTOs;
-using MasterYourEnglish.BLL.Interfaces;
-using MasterYourEnglish.Presentation.ViewModels.Commands;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using System.Windows.Input;
-
-namespace MasterYourEnglish.Presentation.ViewModels
+﻿namespace MasterYourEnglish.Presentation.ViewModels
 {
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+    using System.Threading.Tasks;
+    using System.Windows.Input;
+    using MasterYourEnglish.BLL.DTOs;
+    using MasterYourEnglish.BLL.Interfaces;
+    using MasterYourEnglish.Presentation.ViewModels.Commands;
+
     public class FlashcardSessionViewModel : ViewModelBase
     {
-        private readonly IFlashcardBundleService _bundleService;
-        private readonly IFlashcardService _flashcardService;
-        private readonly ICurrentUserService _currentUserService;
+        private readonly IFlashcardBundleService bundleService;
+        private readonly IFlashcardService flashcardService;
+        private readonly ICurrentUserService currentUserService;
 
-        private List<FlashcardSessionDto> _sessionCards;
-        private Dictionary<int, bool> _results;
-        private int _currentIndex;
-        private int _bundleId; 
-        private bool _isFlipped;
-        public bool IsFlipped { get => _isFlipped; set => SetProperty(ref _isFlipped, value); }
-        private FlashcardSessionDto _currentFlashcard;
-        public FlashcardSessionDto CurrentFlashcard { get => _currentFlashcard; set => SetProperty(ref _currentFlashcard, value); }
-        private string _progressText;
-        public string ProgressText { get => _progressText; set => SetProperty(ref _progressText, value); }
+        private List<FlashcardSessionDto> sessionCards;
+        private Dictionary<int, bool> results;
+        private int currentIndex;
+        private int bundleId;
+        private bool isFlipped;
 
-
-        public event Action<string> NavigationRequested;
-        public ICommand FlipCardCommand { get; }
-        public ICommand KnowCommand { get; }
-        public ICommand DontKnowCommand { get; }
-        public ICommand AddToSavedCommand { get; }
+        private FlashcardSessionDto currentFlashcard;
+        private string progressText;
 
         public FlashcardSessionViewModel(
             IFlashcardBundleService bundleService,
             IFlashcardService flashcardService,
             ICurrentUserService currentUserService)
         {
-            _bundleService = bundleService;
-            _flashcardService = flashcardService;
-            _currentUserService = currentUserService;
+            this.bundleService = bundleService;
+            this.flashcardService = flashcardService;
+            this.currentUserService = currentUserService;
 
-            _sessionCards = new List<FlashcardSessionDto>();
-            _results = new Dictionary<int, bool>();
+            this.sessionCards = new List<FlashcardSessionDto>();
+            this.results = new Dictionary<int, bool>();
 
-            FlipCardCommand = new RelayCommand(p => IsFlipped = !IsFlipped);
-            AddToSavedCommand = new RelayCommand(p => AddToSaved(), p => CanAddToSaved());
-            KnowCommand = new RelayCommand(p => OnKnow());
-            DontKnowCommand = new RelayCommand(p => OnDontKnow());
+            this.FlipCardCommand = new RelayCommand(p => this.IsFlipped = !this.IsFlipped);
+            this.AddToSavedCommand = new RelayCommand(p => this.AddToSaved(), p => this.CanAddToSaved());
+            this.KnowCommand = new RelayCommand(p => this.OnKnow());
+            this.DontKnowCommand = new RelayCommand(p => this.OnDontKnow());
         }
+
+        public event Action<string> NavigationRequested;
+
+        public bool IsFlipped { get => this.isFlipped; set => this.SetProperty(ref this.isFlipped, value); }
+
+        public FlashcardSessionDto CurrentFlashcard { get => this.currentFlashcard; set => this.SetProperty(ref this.currentFlashcard, value); }
+
+        public string ProgressText { get => this.progressText; set => this.SetProperty(ref this.progressText, value); }
+
+        public ICommand FlipCardCommand { get; }
+
+        public ICommand KnowCommand { get; }
+
+        public ICommand DontKnowCommand { get; }
+
+        public ICommand AddToSavedCommand { get; }
 
         public async void LoadSession(int bundleId)
         {
-            _bundleId = bundleId;
-            _sessionCards = await _bundleService.GetFlashcardSessionAsync(bundleId);
-            StartSession();
+            this.bundleId = bundleId;
+            this.sessionCards = await this.bundleService.GetFlashcardSessionAsync(bundleId);
+            this.StartSession();
         }
 
         public void LoadSession(List<FlashcardSessionDto> cards)
         {
-            _bundleId = 0;
-            _sessionCards = cards;
-            StartSession();
+            this.bundleId = 0;
+            this.sessionCards = cards;
+            this.StartSession();
         }
 
         public async void LoadSessionFromSaved()
         {
-            _bundleId = 0;
-            int userId = _currentUserService.CurrentUser.UserId;
-            _sessionCards = await _flashcardService.GetSavedFlashcardsForSessionAsync(userId);
-            StartSession();
+            this.bundleId = 0;
+            int userId = this.currentUserService.CurrentUser.UserId;
+            this.sessionCards = await this.flashcardService.GetSavedFlashcardsForSessionAsync(userId);
+            this.StartSession();
         }
 
         private void StartSession()
         {
-            if (_sessionCards == null || _sessionCards.Count == 0)
+            if (this.sessionCards == null || this.sessionCards.Count == 0)
             {
-                NavigationRequested?.Invoke("Flashcards"); 
+                this.NavigationRequested?.Invoke("Flashcards");
                 return;
             }
 
-            _currentIndex = 0;
-            _results.Clear();
-            IsFlipped = false;
-            UpdateCurrentCard();
+            this.currentIndex = 0;
+            this.results.Clear();
+            this.IsFlipped = false;
+            this.UpdateCurrentCard();
         }
 
         private void UpdateCurrentCard()
         {
-            CurrentFlashcard = _sessionCards[_currentIndex];
-            ProgressText = $"{_currentIndex + 1}/{_sessionCards.Count}";
+            this.CurrentFlashcard = this.sessionCards[this.currentIndex];
+            this.ProgressText = $"{this.currentIndex + 1}/{this.sessionCards.Count}";
             CommandManager.InvalidateRequerySuggested();
         }
 
         private void OnKnow()
         {
-            _results[CurrentFlashcard.FlashcardId] = true;
-            HandleAdvance();
+            this.results[this.CurrentFlashcard.FlashcardId] = true;
+            this.HandleAdvance();
         }
 
         private void OnDontKnow()
         {
-            _results[CurrentFlashcard.FlashcardId] = false;
-            HandleAdvance();
+            this.results[this.CurrentFlashcard.FlashcardId] = false;
+            this.HandleAdvance();
         }
 
         private async void HandleAdvance()
         {
-            if (_currentIndex < _sessionCards.Count - 1)
+            if (this.currentIndex < this.sessionCards.Count - 1)
             {
-                _currentIndex++;
-                IsFlipped = false;
-                UpdateCurrentCard();
+                this.currentIndex++;
+                this.IsFlipped = false;
+                this.UpdateCurrentCard();
             }
             else
             {
-                int userId = _currentUserService.CurrentUser.UserId;
+                int userId = this.currentUserService.CurrentUser.UserId;
 
-                if (_bundleId > 0)
+                if (this.bundleId > 0)
                 {
-                    await _bundleService.SaveSessionAttemptAsync(_bundleId, userId, _results);
+                    await this.bundleService.SaveSessionAttemptAsync(this.bundleId, userId, this.results);
                 }
 
-                int knownCount = _results.Count(r => r.Value == true);
-                NavigationRequested?.Invoke($"SessionResults:{knownCount}:{_sessionCards.Count}");
+                int knownCount = this.results.Count(r => r.Value == true);
+                this.NavigationRequested?.Invoke($"SessionResults:{knownCount}:{this.sessionCards.Count}");
             }
         }
 
         private bool CanAddToSaved()
         {
-            return CurrentFlashcard != null;
+            return this.CurrentFlashcard != null;
         }
 
         private async void AddToSaved()
         {
-            if (!CanAddToSaved()) return;
-            int userId = _currentUserService.CurrentUser.UserId;
-            int flashcardId = CurrentFlashcard.FlashcardId;
-            await _flashcardService.AddToSavedAsync(userId, flashcardId);
+            if (!this.CanAddToSaved())
+            {
+                return;
+            }
+
+            int userId = this.currentUserService.CurrentUser.UserId;
+            int flashcardId = this.CurrentFlashcard.FlashcardId;
+            await this.flashcardService.AddToSavedAsync(userId, flashcardId);
         }
     }
 }

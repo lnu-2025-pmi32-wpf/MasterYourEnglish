@@ -1,7 +1,7 @@
-﻿using System.Threading.Tasks;
-
-namespace MasterYourEnglish.Presentation.ViewModels
+﻿namespace MasterYourEnglish.Presentation.ViewModels
 {
+    using System.Threading.Tasks;
+
     public interface IPageViewModel
     {
         Task LoadDataAsync();

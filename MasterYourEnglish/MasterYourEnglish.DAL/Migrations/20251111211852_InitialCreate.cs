@@ -1,11 +1,11 @@
-﻿using System;
-using Microsoft.EntityFrameworkCore.Migrations;
-using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
-
-#nullable disable
+﻿#nullable disable
 
 namespace MasterYourEnglish.DAL.Migrations
 {
+    using System;
+    using Microsoft.EntityFrameworkCore.Migrations;
+    using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
+
     /// <inheritdoc />
     public partial class InitialCreate : Migration
     {
@@ -19,7 +19,7 @@ namespace MasterYourEnglish.DAL.Migrations
                     TopicId = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     Name = table.Column<string>(type: "text", nullable: false),
-                    Description = table.Column<string>(type: "text", nullable: true)
+                    Description = table.Column<string>(type: "text", nullable: true),
                 },
                 constraints: table =>
                 {
@@ -38,7 +38,7 @@ namespace MasterYourEnglish.DAL.Migrations
                     Email = table.Column<string>(type: "text", nullable: false),
                     PasswordHash = table.Column<string>(type: "text", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    Role = table.Column<string>(type: "text", nullable: false)
+                    Role = table.Column<string>(type: "text", nullable: false),
                 },
                 constraints: table =>
                 {
@@ -59,7 +59,7 @@ namespace MasterYourEnglish.DAL.Migrations
                     IsUserCreated = table.Column<bool>(type: "boolean", nullable: false),
                     TotalFlashcardsCount = table.Column<int>(type: "integer", nullable: false),
                     TopicId = table.Column<int>(type: "integer", nullable: true),
-                    CreatedBy = table.Column<int>(type: "integer", nullable: true)
+                    CreatedBy = table.Column<int>(type: "integer", nullable: true),
                 },
                 constraints: table =>
                 {
@@ -91,7 +91,7 @@ namespace MasterYourEnglish.DAL.Migrations
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     IsUserCreated = table.Column<bool>(type: "boolean", nullable: false),
                     TopicId = table.Column<int>(type: "integer", nullable: true),
-                    CreatedBy = table.Column<int>(type: "integer", nullable: true)
+                    CreatedBy = table.Column<int>(type: "integer", nullable: true),
                 },
                 constraints: table =>
                 {
@@ -119,7 +119,7 @@ namespace MasterYourEnglish.DAL.Migrations
                     DifficultyLevel = table.Column<string>(type: "text", nullable: true),
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     CreatedBy = table.Column<int>(type: "integer", nullable: true),
-                    TopicId = table.Column<int>(type: "integer", nullable: true)
+                    TopicId = table.Column<int>(type: "integer", nullable: true),
                 },
                 constraints: table =>
                 {
@@ -150,7 +150,7 @@ namespace MasterYourEnglish.DAL.Migrations
                     IsUserCreated = table.Column<bool>(type: "boolean", nullable: false),
                     TotalQuestionsCount = table.Column<int>(type: "integer", nullable: false),
                     TopicId = table.Column<int>(type: "integer", nullable: true),
-                    CreatedBy = table.Column<int>(type: "integer", nullable: true)
+                    CreatedBy = table.Column<int>(type: "integer", nullable: true),
                 },
                 constraints: table =>
                 {
@@ -176,7 +176,7 @@ namespace MasterYourEnglish.DAL.Migrations
                     StartedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     FinishedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     FlashcardsBundleId = table.Column<int>(type: "integer", nullable: false),
-                    UserId = table.Column<int>(type: "integer", nullable: false)
+                    UserId = table.Column<int>(type: "integer", nullable: false),
                 },
                 constraints: table =>
                 {
@@ -201,7 +201,7 @@ namespace MasterYourEnglish.DAL.Migrations
                 {
                     FlashcardsBundleId = table.Column<int>(type: "integer", nullable: false),
                     FlashcardId = table.Column<int>(type: "integer", nullable: false),
-                    Position = table.Column<int>(type: "integer", nullable: false)
+                    Position = table.Column<int>(type: "integer", nullable: false),
                 },
                 constraints: table =>
                 {
@@ -225,7 +225,7 @@ namespace MasterYourEnglish.DAL.Migrations
                 columns: table => new
                 {
                     UserId = table.Column<int>(type: "integer", nullable: false),
-                    FlashcardId = table.Column<int>(type: "integer", nullable: false)
+                    FlashcardId = table.Column<int>(type: "integer", nullable: false),
                 },
                 constraints: table =>
                 {
@@ -252,7 +252,7 @@ namespace MasterYourEnglish.DAL.Migrations
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     Text = table.Column<string>(type: "text", nullable: false),
                     IsCorrect = table.Column<bool>(type: "boolean", nullable: false),
-                    QuestionId = table.Column<int>(type: "integer", nullable: false)
+                    QuestionId = table.Column<int>(type: "integer", nullable: false),
                 },
                 constraints: table =>
                 {
@@ -275,7 +275,7 @@ namespace MasterYourEnglish.DAL.Migrations
                     FinishedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     Score = table.Column<float>(type: "real", nullable: false),
                     TestId = table.Column<int>(type: "integer", nullable: false),
-                    UserId = table.Column<int>(type: "integer", nullable: false)
+                    UserId = table.Column<int>(type: "integer", nullable: false),
                 },
                 constraints: table =>
                 {
@@ -300,7 +300,7 @@ namespace MasterYourEnglish.DAL.Migrations
                 {
                     TestId = table.Column<int>(type: "integer", nullable: false),
                     QuestionId = table.Column<int>(type: "integer", nullable: false),
-                    Position = table.Column<int>(type: "integer", nullable: false)
+                    Position = table.Column<int>(type: "integer", nullable: false),
                 },
                 constraints: table =>
                 {
@@ -327,7 +327,7 @@ namespace MasterYourEnglish.DAL.Migrations
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     IsKnown = table.Column<bool>(type: "boolean", nullable: false),
                     AttemptId = table.Column<int>(type: "integer", nullable: false),
-                    FlashcardId = table.Column<int>(type: "integer", nullable: false)
+                    FlashcardId = table.Column<int>(type: "integer", nullable: false),
                 },
                 constraints: table =>
                 {
@@ -356,7 +356,7 @@ namespace MasterYourEnglish.DAL.Migrations
                     IsCorrect = table.Column<bool>(type: "boolean", nullable: false),
                     AttemptId = table.Column<int>(type: "integer", nullable: false),
                     QuestionId = table.Column<int>(type: "integer", nullable: false),
-                    SelectedOptionId = table.Column<int>(type: "integer", nullable: true)
+                    SelectedOptionId = table.Column<int>(type: "integer", nullable: true),
                 },
                 constraints: table =>
                 {
@@ -386,7 +386,7 @@ namespace MasterYourEnglish.DAL.Migrations
                 {
                     AttemptAnswersId = table.Column<int>(type: "integer", nullable: false),
                     SelectedOptionId = table.Column<int>(type: "integer", nullable: false),
-                    AttemptAnswersId1 = table.Column<int>(type: "integer", nullable: false)
+                    AttemptAnswersId1 = table.Column<int>(type: "integer", nullable: false),
                 },
                 constraints: table =>
                 {

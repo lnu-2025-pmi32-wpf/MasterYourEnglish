@@ -1,79 +1,81 @@
-﻿using MasterYourEnglish.BLL.Interfaces;
-using MasterYourEnglish.BLL.Models.DTOs;
-using MasterYourEnglish.Presentation.ViewModels.Commands;
-using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Linq;
-using System.Threading.Tasks;
-using System.Windows.Input;
-
-namespace MasterYourEnglish.Presentation.ViewModels
+﻿namespace MasterYourEnglish.Presentation.ViewModels
 {
+    using System;
+    using System.Collections.Generic;
+    using System.Collections.ObjectModel;
+    using System.Linq;
+    using System.Threading.Tasks;
+    using System.Windows.Input;
+    using MasterYourEnglish.BLL.Interfaces;
+    using MasterYourEnglish.BLL.Models.DTOs;
+    using MasterYourEnglish.Presentation.ViewModels.Commands;
+
     public class TestListViewModel : ViewModelBase, IPageViewModel
     {
-        private readonly ITestService _testService;
-        private bool _isLoading = false;
+        private readonly ITestService testService;
+        private bool isLoading = false;
+        private string searchTerm;
+        private string selectedSortOption;
 
-        public ObservableCollection<TestCardDto> TestCards { get; }
+        public TestListViewModel(ITestService testService)
+        {
+            this.testService = testService;
+            this.TestCards = new ObservableCollection<TestCardDto>();
+            this.SortOptions = new List<string> { "Name (A-Z)", "Name (Z-A)", "Level (Easy-Hard)", "Level (Hard-Easy)" };
+            this.selectedSortOption = this.SortOptions.First();
+            this.StartTestCommand = new RelayCommand(this.OnStartTest);
+        }
+
         public event Action<string> NavigationRequested;
 
-        private string _searchTerm;
+        public ObservableCollection<TestCardDto> TestCards { get; }
+
         public string SearchTerm
         {
-            get => _searchTerm;
+            get => this.searchTerm;
             set
             {
-                SetProperty(ref _searchTerm, value);
-                LoadDataAsync(); 
+                this.SetProperty(ref this.searchTerm, value);
+                this.LoadDataAsync();
             }
         }
 
         public List<string> SortOptions { get; }
-        private string _selectedSortOption;
+
         public string SelectedSortOption
         {
-            get => _selectedSortOption;
+            get => this.selectedSortOption;
             set
             {
-                SetProperty(ref _selectedSortOption, value);
-                LoadDataAsync();
+                this.SetProperty(ref this.selectedSortOption, value);
+                this.LoadDataAsync();
             }
         }
 
         public ICommand StartTestCommand { get; }
 
-        public TestListViewModel(ITestService testService)
-        {
-            _testService = testService;
-            TestCards = new ObservableCollection<TestCardDto>();
-
-            SortOptions = new List<string> { "Name (A-Z)", "Name (Z-A)", "Level (Easy-Hard)", "Level (Hard-Easy)" };
-            _selectedSortOption = SortOptions.First();
-
-            StartTestCommand = new RelayCommand(OnStartTest);
-        }
         public async Task LoadDataAsync()
         {
-            if (_isLoading) return;
-            _isLoading = true;
+            if (this.isLoading)
+            {
+                return;
+            }
 
+            this.isLoading = true;
             try
             {
-                string sortBy = _selectedSortOption.Contains("Name") ? "Name" : "Level";
-                bool ascending = _selectedSortOption.Contains("(A-Z)") || _selectedSortOption.Contains("(Easy-Hard)");
-
-                var tests = await _testService.GetPublishedTestsAsync(SearchTerm, sortBy, ascending);
-
-                TestCards.Clear();
+                string sortBy = this.selectedSortOption.Contains("Name") ? "Name" : "Level";
+                bool ascending = this.selectedSortOption.Contains("(A-Z)") || this.selectedSortOption.Contains("(Easy-Hard)");
+                var tests = await this.testService.GetPublishedTestsAsync(this.SearchTerm, sortBy, ascending);
+                this.TestCards.Clear();
                 foreach (var test in tests)
                 {
-                    TestCards.Add(test);
+                    this.TestCards.Add(test);
                 }
             }
             finally
             {
-                _isLoading = false;
+                this.isLoading = false;
             }
         }
 

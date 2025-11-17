@@ -1,24 +1,24 @@
-﻿using MasterYourEnglish.BLL.DTOs;
-using MasterYourEnglish.BLL.Interfaces;
-using MasterYourEnglish.BLL.Models.DTOs;
-using MasterYourEnglish.DAL.Entities;
-using MasterYourEnglish.DAL.Interfaces;
-using MasterYourEnglish.DAL.Repositories;
-using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-
-namespace MasterYourEnglish.BLL.Services
+﻿namespace MasterYourEnglish.BLL.Services
 {
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+    using System.Threading.Tasks;
+    using MasterYourEnglish.BLL.DTOs;
+    using MasterYourEnglish.BLL.Interfaces;
+    using MasterYourEnglish.BLL.Models.DTOs;
+    using MasterYourEnglish.DAL.Entities;
+    using MasterYourEnglish.DAL.Interfaces;
+    using MasterYourEnglish.DAL.Repositories;
+    using Microsoft.EntityFrameworkCore;
+
     public class FlashcardBundleService : IFlashcardBundleService
     {
-        private readonly IFlashcardBundleRepository _bundleRepository;
-        private readonly IFlashcardsBundleAttemptRepository _attemptRepository;
-        private readonly IRepository<FlashcardAttemptAnswer> _answerRepository;
-        private readonly IFlashcardRepository _flashcardRepository;
-        private readonly IRepository<FlashcardBundleItem> _bundleItemRepository;
+        private readonly IFlashcardBundleRepository bundleRepository;
+        private readonly IFlashcardsBundleAttemptRepository attemptRepository;
+        private readonly IRepository<FlashcardAttemptAnswer> answerRepository;
+        private readonly IFlashcardRepository flashcardRepository;
+        private readonly IRepository<FlashcardBundleItem> bundleItemRepository;
 
         public FlashcardBundleService(
             IFlashcardBundleRepository bundleRepository,
@@ -27,23 +27,24 @@ namespace MasterYourEnglish.BLL.Services
             IFlashcardRepository flashcardRepository,
             IRepository<FlashcardBundleItem> bundleItemRepository)
         {
-            _bundleRepository = bundleRepository;
-            _attemptRepository = attemptRepository;
-            _answerRepository = answerRepository;
-            _flashcardRepository = flashcardRepository;
-            _bundleItemRepository = bundleItemRepository;
+            this.bundleRepository = bundleRepository;
+            this.attemptRepository = attemptRepository;
+            this.answerRepository = answerRepository;
+            this.flashcardRepository = flashcardRepository;
+            this.bundleItemRepository = bundleItemRepository;
         }
 
         public async Task<IEnumerable<FlashcardBundleCardDto>> GetPublishedBundlesAsync(string searchTerm, string sortBy, bool ascending)
         {
-            var bundles = await _bundleRepository.GetPublishedBundlesWithDetailsAsync();
+            var bundles = await this.bundleRepository.GetPublishedBundlesWithDetailsAsync();
             if (!string.IsNullOrWhiteSpace(searchTerm))
             {
                 string lowerSearch = searchTerm.ToLower();
                 bundles = bundles.Where(b => b.Title.ToLower().Contains(lowerSearch) ||
-                                             (b.Topic?.Name ?? "").ToLower().Contains(lowerSearch) ||
-                                             (b.Description ?? "").ToLower().Contains(lowerSearch));
+                                             (b.Topic?.Name ?? string.Empty).ToLower().Contains(lowerSearch) ||
+                                             (b.Description ?? string.Empty).ToLower().Contains(lowerSearch));
             }
+
             switch (sortBy)
             {
                 case "Level":
@@ -54,30 +55,35 @@ namespace MasterYourEnglish.BLL.Services
                     bundles = ascending ? bundles.OrderBy(b => b.Title) : bundles.OrderByDescending(b => b.Title);
                     break;
             }
+
             return bundles.Select(b => new FlashcardBundleCardDto
             {
                 BundleId = b.FlashcardsBundleId,
                 BundleName = b.Title,
                 CategoryName = b.Topic?.Name ?? "General",
                 DifficultyLevel = b.DifficultyLevel ?? "N/A",
-                Description = b.Description ?? ""
+                Description = b.Description ?? string.Empty,
             });
         }
 
         public async Task<List<FlashcardSessionDto>> GetFlashcardSessionAsync(int bundleId)
         {
-            var bundle = await _bundleRepository.GetFlashcardBundleWithDetailsAsync(bundleId);
-            if (bundle == null || bundle.FlashcardsBundleItems == null) { return new List<FlashcardSessionDto>(); }
+            var bundle = await this.bundleRepository.GetFlashcardBundleWithDetailsAsync(bundleId);
+            if (bundle == null || bundle.FlashcardsBundleItems == null)
+            {
+                return new List<FlashcardSessionDto>();
+            }
+
             return bundle.FlashcardsBundleItems
                 .OrderBy(item => item.Position)
                 .Select(item => new FlashcardSessionDto
                 {
                     FlashcardId = item.Flashcard.FlashcardId,
                     Word = item.Flashcard.Word,
-                    Transcription = item.Flashcard.Transcription ?? "",
-                    Definition = item.Flashcard.Meaning ?? "",
-                    Example = item.Flashcard.Example ?? "",
-                    PartOfSpeech = item.Flashcard.PartOfSpeech ?? ""
+                    Transcription = item.Flashcard.Transcription ?? string.Empty,
+                    Definition = item.Flashcard.Meaning ?? string.Empty,
+                    Example = item.Flashcard.Example ?? string.Empty,
+                    PartOfSpeech = item.Flashcard.PartOfSpeech ?? string.Empty,
                 })
                 .ToList();
         }
@@ -89,17 +95,21 @@ namespace MasterYourEnglish.BLL.Services
                 FlashcardsBundleId = bundleId,
                 UserId = userId,
                 StartedAt = DateTime.UtcNow,
-                FinishedAt = DateTime.UtcNow
+                FinishedAt = DateTime.UtcNow,
             };
-            await _attemptRepository.AddAsync(newAttempt);
+            await this.attemptRepository.AddAsync(newAttempt);
             var answers = results.Select(res => new FlashcardAttemptAnswer
             {
                 AttemptId = newAttempt.AttemptId,
                 FlashcardId = res.Key,
-                IsKnown = res.Value
+                IsKnown = res.Value,
             }).ToList();
-            foreach (var answer in answers) { await _answerRepository.AddAsync(answer); }
+            foreach (var answer in answers)
+            {
+                await this.answerRepository.AddAsync(answer);
+            }
         }
+
         public async Task<List<FlashcardSessionDto>> GetGeneratedSessionAsync(int userId, List<string> levels, Dictionary<int, int> topicRequests)
         {
             var allFoundFlashcards = new List<Flashcard>();
@@ -110,7 +120,7 @@ namespace MasterYourEnglish.BLL.Services
                 int count = request.Value;
                 if (count > 0)
                 {
-                    var cards = await _flashcardRepository.GetFlashcardsByCriteriaAsync(topicId, levels, count);
+                    var cards = await this.flashcardRepository.GetFlashcardsByCriteriaAsync(topicId, levels, count);
                     allFoundFlashcards.AddRange(cards);
                 }
             }
@@ -121,17 +131,16 @@ namespace MasterYourEnglish.BLL.Services
             {
                 FlashcardId = f.FlashcardId,
                 Word = f.Word,
-                Transcription = f.Transcription ?? "",
-                Definition = f.Meaning ?? "",
-                Example = f.Example ?? "",
-                PartOfSpeech = f.PartOfSpeech ?? ""
+                Transcription = f.Transcription ?? string.Empty,
+                Definition = f.Meaning ?? string.Empty,
+                Example = f.Example ?? string.Empty,
+                PartOfSpeech = f.PartOfSpeech ?? string.Empty,
             }).ToList();
         }
 
         public async Task<int> CreateNewBundleAsync(CreateBundleDto bundleDto, int userId)
         {
             // DANGER: This is not transactional. See warning.
-
             var newBundle = new FlashcardBundle
             {
                 Title = bundleDto.Title,
@@ -142,10 +151,10 @@ namespace MasterYourEnglish.BLL.Services
                 IsPublished = true, // User-created bundles are private
                 IsUserCreated = true,
                 CreatedBy = userId,
-                TotalFlashcardsCount = bundleDto.NewFlashcards.Count
+                TotalFlashcardsCount = bundleDto.NewFlashcards.Count,
             };
 
-            await _bundleRepository.AddAsync(newBundle);
+            await this.bundleRepository.AddAsync(newBundle);
             int position = 1;
             foreach (var cardDto in bundleDto.NewFlashcards)
             {
@@ -160,16 +169,16 @@ namespace MasterYourEnglish.BLL.Services
                     TopicId = bundleDto.TopicId,
                     CreatedAt = DateTime.UtcNow,
                     IsUserCreated = true,
-                    CreatedBy = userId
+                    CreatedBy = userId,
                 };
-                await _flashcardRepository.AddAsync(newCard);
+                await this.flashcardRepository.AddAsync(newCard);
                 var newItem = new FlashcardBundleItem
                 {
                     FlashcardsBundleId = newBundle.FlashcardsBundleId,
                     FlashcardId = newCard.FlashcardId,
-                    Position = position++
+                    Position = position++,
                 };
-                await _bundleItemRepository.AddAsync(newItem);
+                await this.bundleItemRepository.AddAsync(newItem);
             }
 
             return newBundle.FlashcardsBundleId;

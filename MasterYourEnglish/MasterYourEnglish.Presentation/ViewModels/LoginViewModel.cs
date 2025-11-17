@@ -1,61 +1,61 @@
-﻿using MasterYourEnglish.BLL.Interfaces;
-using MasterYourEnglish.Presentation.ViewModels.Commands;
-using System;
-using System.Threading.Tasks;
-using System.Windows.Controls;
-using System.Windows.Input;
-
-namespace MasterYourEnglish.Presentation.ViewModels
+﻿namespace MasterYourEnglish.Presentation.ViewModels
 {
+    using System;
+    using System.Threading.Tasks;
+    using System.Windows.Controls;
+    using System.Windows.Input;
+    using MasterYourEnglish.BLL.Interfaces;
+    using MasterYourEnglish.Presentation.ViewModels.Commands;
+
     public class LoginViewModel : ViewModelBase
     {
-        private readonly IAuthService _authService;
-        private readonly Action _onLoginSuccess;
-        private readonly Action _onShowRegister;
-
-        private string _username = "";
-        public string Username
-        {
-            get => _username;
-            set => SetProperty(ref _username, value);
-        }
-
-        private string _errorMessage = "";
-        public string ErrorMessage
-        {
-            get => _errorMessage;
-            set => SetProperty(ref _errorMessage, value);
-        }
-
-        public ICommand LoginCommand { get; }
-        public ICommand ShowRegisterCommand { get; }
-        public ICommand ForgotPasswordCommand { get; } 
+        private readonly IAuthService authService;
+        private readonly Action onLoginSuccess;
+        private readonly Action onShowRegister;
+        private string username = string.Empty;
+        private string errorMessage = string.Empty;
 
         public LoginViewModel(IAuthService authService, Action onLoginSuccess, Action onShowRegister)
         {
-            _authService = authService;
-            _onLoginSuccess = onLoginSuccess;
-            _onShowRegister = onShowRegister;
-
-            LoginCommand = new RelayCommand(async (param) => await OnLogin(param));
-            ShowRegisterCommand = new RelayCommand(p => _onShowRegister());
-            ForgotPasswordCommand = new RelayCommand(p => { /* TODO: Add logic */ });
+            this.authService = authService;
+            this.onLoginSuccess = onLoginSuccess;
+            this.onShowRegister = onShowRegister;
+            this.LoginCommand = new RelayCommand(async (param) => await this.OnLogin(param));
+            this.ShowRegisterCommand = new RelayCommand(p => this.onShowRegister());
+            this.ForgotPasswordCommand = new RelayCommand(p => { /* TODO: Add logic */ });
         }
+
+        public string Username
+        {
+            get => this.username;
+            set => this.SetProperty(ref this.username, value);
+        }
+
+        public string ErrorMessage
+        {
+            get => this.errorMessage;
+            set => this.SetProperty(ref this.errorMessage, value);
+        }
+
+        public ICommand LoginCommand { get; }
+
+        public ICommand ShowRegisterCommand { get; }
+
+        public ICommand ForgotPasswordCommand { get; }
 
         private async Task OnLogin(object parameter)
         {
             if (parameter is PasswordBox passwordBox)
             {
                 string password = passwordBox.Password;
-                bool success = await _authService.LoginAsync(Username, password);
-
+                bool success = await this.authService.LoginAsync(this.Username, password);
                 if (success)
                 {
-                    _onLoginSuccess();
+                    this.onLoginSuccess();
                 }
                 else
                 {
-                    ErrorMessage = "Invalid username or password.";
+                    this.ErrorMessage = "Invalid username or password.";
                 }
             }
         }

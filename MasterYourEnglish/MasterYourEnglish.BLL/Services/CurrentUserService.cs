@@ -1,8 +1,8 @@
-﻿using MasterYourEnglish.BLL.Interfaces;
-using MasterYourEnglish.DAL.Entities;
-
-namespace MasterYourEnglish.BLL.Services
+﻿namespace MasterYourEnglish.BLL.Services
 {
+    using MasterYourEnglish.BLL.Interfaces;
+    using MasterYourEnglish.DAL.Entities;
+
     public class CurrentUserService : ICurrentUserService
     {
         public User CurrentUser { get; private set; }
