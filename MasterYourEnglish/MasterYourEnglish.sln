@@ -9,6 +9,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MasterYourEnglish.BLL", "Ma
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MasterYourEnglish.Presentation", "MasterYourEnglish.Presentation\MasterYourEnglish.Presentation.csproj", "{690A8D41-905C-4556-B310-D12E199B9FC7}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MasterYourEnglish.Tests", "MasterYourEnglish.Tests\MasterYourEnglish.Tests.csproj", "{0C0C4A7A-F3E8-427D-B79C-98A0A7686CD0}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +29,10 @@ Global
 		{690A8D41-905C-4556-B310-D12E199B9FC7}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{690A8D41-905C-4556-B310-D12E199B9FC7}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{690A8D41-905C-4556-B310-D12E199B9FC7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0C0C4A7A-F3E8-427D-B79C-98A0A7686CD0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0C0C4A7A-F3E8-427D-B79C-98A0A7686CD0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0C0C4A7A-F3E8-427D-B79C-98A0A7686CD0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0C0C4A7A-F3E8-427D-B79C-98A0A7686CD0}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
