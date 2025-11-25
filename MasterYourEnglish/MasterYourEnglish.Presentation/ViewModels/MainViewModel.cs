@@ -17,6 +17,11 @@
         private readonly SessionResultsViewModel sessionResultsVm;
         private readonly GenerateBundleViewModel generateBundleVm;
         private readonly CreateBundleViewModel createBundleVm;
+        private readonly CreateTestViewModel createTestVm;
+
+
+        private readonly GenerateTestViewModel generateTestVm;
+        private readonly TestSessionViewModel testSessionVm;
         private ViewModelBase currentViewModel;
 
         public MainViewModel(
@@ -30,7 +35,10 @@
             FlashcardSessionViewModel sessionVm,
             SessionResultsViewModel sessionResultsVm,
             GenerateBundleViewModel generateBundleVm,
-            CreateBundleViewModel createBundleVm)
+            CreateBundleViewModel createBundleVm,
+            CreateTestViewModel createTestVm,
+            GenerateTestViewModel generateTestVm,
+            TestSessionViewModel testSessionVm)
         {
             this.SidebarVm = sidebarViewModel;
             this.profileVm = profileVm;
@@ -43,6 +51,11 @@
             this.sessionResultsVm = sessionResultsVm;
             this.generateBundleVm = generateBundleVm;
             this.createBundleVm = createBundleVm;
+            this.createTestVm = createTestVm;
+
+            this.generateTestVm = generateTestVm;
+            this.testSessionVm = testSessionVm;
+
             this.SidebarVm.NavigationRequested += this.OnNavigationRequested;
             this.flashcardsVm.NavigationRequested += this.OnNavigationRequested;
             this.sessionResultsVm.NavigationRequested += this.OnNavigationRequested;
@@ -51,8 +64,14 @@
             this.createBundleVm.NavigationRequested += this.OnNavigationRequested;
             this.generateBundleVm.NavigationRequested += this.OnNavigationRequested;
             this.generateBundleVm.SessionGenerated += this.OnSessionGenerated;
+            this.createTestVm.NavigationRequested += this.OnNavigationRequested;
+
+            this.generateTestVm.NavigationRequested += this.OnNavigationRequested;
+            this.testListVm.NavigationRequested += this.OnNavigationRequested;
+            this.testSessionVm.NavigationRequested += this.OnNavigationRequested;
             this.CurrentViewModel = this.profileVm;
             this.LoadPageData(this.CurrentViewModel);
+            this.createTestVm = createTestVm;
         }
 
         public ViewModelBase CurrentViewModel
@@ -87,8 +106,24 @@
                 var parts = navigationKey.Split(':');
                 int known = int.Parse(parts[1]);
                 int total = int.Parse(parts[2]);
-                this.sessionResultsVm.ShowResults(known, total);
+                string returnKey = "Flashcards";
+                if (parts.Length > 3)
+                {
+                    returnKey = parts[3];
+                }
+
+                this.sessionResultsVm.ShowResults(known, total, returnKey);
+
                 newPage = this.sessionResultsVm;
+            }
+            else if (navigationKey.StartsWith("TestSession:"))
+            {
+                var idString = navigationKey.Split(':')[1];
+                if (int.TryParse(idString, out int testId))
+                {
+                    this.testSessionVm.LoadTest(testId);
+                    newPage = this.testSessionVm;
+                }
             }
             else
             {
@@ -109,6 +144,12 @@
                         break;
                     case "CreateBundle":
                         newPage = this.createBundleVm;
+                        break;
+                    case "CreateTest":
+                        newPage = this.createTestVm;
+                        break;
+                    case "GenerateTest":
+                        newPage = this.generateTestVm;
                         break;
                 }
             }

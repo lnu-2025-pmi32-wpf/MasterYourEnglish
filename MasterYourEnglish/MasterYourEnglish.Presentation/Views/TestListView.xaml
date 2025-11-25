@@ -10,6 +10,18 @@
              Background="{DynamicResource App.BackgroundBrush}">
 
     <UserControl.Resources>
+        <Style x:Key="DifficultyTagText" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="FontSize" Value="12"/>
+        </Style>
+        <Style x:Key="DifficultyTagStyle" TargetType="Border">
+            <Setter Property="Background" Value="Gray"/>
+            <Setter Property="CornerRadius" Value="3"/>
+            <Setter Property="Padding" Value="5,2"/>
+            <Setter Property="Margin" Value="0,0,5,0"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+        </Style>
         <Style x:Key="CardButtonStyle" TargetType="Button">
             <Setter Property="Background" Value="{DynamicResource Sidebar.BackgroundBrush}"/>
             <Setter Property="BorderBrush" Value="{DynamicResource Border.PrimaryBrush}"/>
@@ -19,7 +31,6 @@
             <Setter Property="Width" Value="215"/>
             <Setter Property="Height" Value="250"/>
             <Setter Property="Margin" Value="10"/>
-
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
@@ -28,12 +39,10 @@
                                 BorderBrush="{TemplateBinding BorderBrush}"
                                 BorderThickness="{TemplateBinding BorderThickness}"
                                 CornerRadius="5">
-
                             <ContentPresenter Margin="15"
                                               VerticalAlignment="Top"
                                               HorizontalAlignment="Left"/>
                         </Border>
-
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
                                 <Setter TargetName="CardBorder" Property="Background"
@@ -46,20 +55,6 @@
                 </Setter.Value>
             </Setter>
         </Style>
-
-        <Style x:Key="DifficultyTagStyle" TargetType="Border">
-            <Setter Property="Background" Value="Gray"/>
-            <Setter Property="CornerRadius" Value="3"/>
-            <Setter Property="Padding" Value="5,2"/>
-            <Setter Property="Margin" Value="0,0,5,0"/>
-            <Setter Property="VerticalAlignment" Value="Center"/>
-        </Style>
-        <Style x:Key="DifficultyTagText" TargetType="TextBlock">
-            <Setter Property="Foreground" Value="White"/>
-            <Setter Property="FontWeight" Value="Bold"/>
-            <Setter Property="FontSize" Value="12"/>
-        </Style>
-
     </UserControl.Resources>
 
     <Grid Margin="30">
@@ -74,23 +69,24 @@
                    FontSize="28" FontWeight="SemiBold"
                    Foreground="{DynamicResource Text.PrimaryBrush}"
                    Margin="0,0,0,20"/>
-
         <Grid Grid.Row="1" Margin="0,-10,0,10">
             <StackPanel Orientation="Horizontal" Grid.Column="0" HorizontalAlignment="Left">
-                <Button Style="{StaticResource CardButtonStyle}">
+
+                <Button Style="{StaticResource CardButtonStyle}"
+                        Command="{Binding NavigateToCreateCommand}">
                     <StackPanel>
                         <TextBlock Text="Create your own test" FontSize="20" FontWeight="SemiBold" TextWrapping="Wrap"/>
                         <TextBlock Text="Build a new test from scratch." FontSize="14" TextWrapping="Wrap" Margin="0,10,0,0"/>
                     </StackPanel>
                 </Button>
-                <Button Style="{StaticResource CardButtonStyle}">
+                <Button Style="{StaticResource CardButtonStyle}"
+                        Command="{Binding NavigateToGenerateCommand}">
                     <StackPanel>
                         <TextBlock Text="Generate your test" FontSize="20" FontWeight="SemiBold" TextWrapping="Wrap"/>
                         <TextBlock Text="Generate a test with already existing questions." FontSize="14" TextWrapping="Wrap" Margin="0,10,0,0"/>
                     </StackPanel>
                 </Button>
             </StackPanel>
-
         </Grid>
 
         <Grid Grid.Row="2" Margin="0,0,10,10">
@@ -125,11 +121,6 @@
 
                 <ItemsControl.ItemTemplate>
                     <DataTemplate>
-                        <!-- 
-                          NOTE:  create a "StartTestCommand" 
-                          in your TestListViewModel, just like you did
-                          for the flashcards.
-                        -->
                         <Button Style="{StaticResource CardButtonStyle}"
                                 Command="{Binding DataContext.StartTestCommand, 
                                           RelativeSource={RelativeSource AncestorType=ItemsControl}}"

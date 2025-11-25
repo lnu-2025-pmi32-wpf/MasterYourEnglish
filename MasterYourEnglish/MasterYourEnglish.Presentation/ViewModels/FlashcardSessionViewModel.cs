@@ -131,7 +131,7 @@
                 }
 
                 int knownCount = this.results.Count(r => r.Value == true);
-                this.NavigationRequested?.Invoke($"SessionResults:{knownCount}:{this.sessionCards.Count}");
+                this.NavigationRequested?.Invoke($"SessionResults:{knownCount}:{this.sessionCards.Count}:Flashcards");
             }
         }
 
