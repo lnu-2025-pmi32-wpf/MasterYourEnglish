@@ -150,7 +150,7 @@
                 TopicId = testDto.TopicId,
                 DifficultyLevel = testDto.DifficultyLevel,
                 CreatedAt = DateTime.UtcNow,
-                IsPublished = false,
+                IsPublished = true,
                 IsUserCreated = true,
                 CreatedBy = userId,
                 TotalQuestionsCount = testDto.NewQuestions.Count
