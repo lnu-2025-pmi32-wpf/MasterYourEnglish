@@ -15,6 +15,9 @@
         public async Task<IEnumerable<FlashcardBundleAttempt>> GetAttemptsForUserAsync(int userId)
         {
             return await this.dbSet
+                .Include(a => a.FlashcardsBundle)
+                    .ThenInclude(b => b.Topic)
+                .Include(a => a.FlashcardsAttemptAnswers)
                 .Where(a => a.UserId == userId)
                 .OrderByDescending(a => a.StartedAt)
                 .ToListAsync();
@@ -23,7 +26,6 @@
         public async Task<FlashcardBundleAttempt?> GetAttemptWithDetailsAsync(int attemptId)
         {
             return await this.dbSet
-
                 .Include(a => a.FlashcardsBundle)
                 .Include(a => a.FlashcardsAttemptAnswers)
                 .ThenInclude(ans => ans.Flashcard)

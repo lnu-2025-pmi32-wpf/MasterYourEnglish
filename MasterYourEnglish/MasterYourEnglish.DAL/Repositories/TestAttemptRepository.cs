@@ -15,6 +15,8 @@
         public async Task<IEnumerable<TestAttempt>> GetAttemptsForUserAsync(int userId)
         {
             return await this.dbSet
+                .Include(a => a.Test)
+                    .ThenInclude(t => t.Topic)
                 .Where(a => a.UserId == userId)
                 .OrderByDescending(a => a.StartedAt)
                 .ToListAsync();
