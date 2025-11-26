@@ -75,6 +75,7 @@
             services.AddTransient<IFlashcardBundleService, FlashcardBundleService>();
             services.AddTransient<IFlashcardService, FlashcardService>();
             services.AddTransient<ITopicService, TopicService>();
+            services.AddTransient<IStatisticsService, StatisticsService>();
 
 
             services.AddScoped<IRepository<FlashcardAttemptAnswer>, Repository<FlashcardAttemptAnswer>>();

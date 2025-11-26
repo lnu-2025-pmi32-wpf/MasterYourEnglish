@@ -90,11 +90,15 @@ namespace MasterYourEnglish.BLL.Services
         public async Task<int> SubmitTestAttemptAsync(int testId, int userId, Dictionary<int, int> answers)
         {
             int correctCount = 0;
+            int totalQuestions = answers.Count;
+            
             foreach (var answer in answers)
             {
                 var option = await _optionRepository.GetByIdAsync(answer.Value);
                 if (option != null && option.IsCorrect) correctCount++;
             }
+
+            float scorePercentage = totalQuestions > 0 ? (float)correctCount / totalQuestions * 100 : 0;
 
             var attempt = new TestAttempt
             {
@@ -102,7 +106,7 @@ namespace MasterYourEnglish.BLL.Services
                 UserId = userId,
                 StartedAt = DateTime.UtcNow.AddMinutes(-10),
                 FinishedAt = DateTime.UtcNow,
-                Score = correctCount
+                Score = scorePercentage
             };
             await _attemptRepository.AddAsync(attempt);
 
@@ -129,7 +133,7 @@ namespace MasterYourEnglish.BLL.Services
                 TopicId = testDto.TopicId,
                 DifficultyLevel = testDto.DifficultyLevel,
                 CreatedAt = DateTime.UtcNow,
-                IsPublished = false,
+                IsPublished = true,
                 IsUserCreated = true,
                 CreatedBy = userId,
                 TotalQuestionsCount = testDto.NewQuestions.Count
@@ -173,7 +177,8 @@ namespace MasterYourEnglish.BLL.Services
             {
                 var questions = await _questionRepository.FindAsync(x =>
                     x.TopicId == req.Key &&
-                    levels.Contains(x.DifficultyLevel));
+                    levels.Contains(x.DifficultyLevel) &&
+                    x.CreatedBy == null); // Only use app-created questions
 
                 var taken = questions.OrderBy(x => Guid.NewGuid()).Take(req.Value).ToList();
                 allQuestions.AddRange(taken);

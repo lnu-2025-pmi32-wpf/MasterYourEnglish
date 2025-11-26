@@ -10,6 +10,18 @@
              Background="{DynamicResource App.BackgroundBrush}">
 
     <UserControl.Resources>
+        <Style x:Key="DifficultyTagStyle" TargetType="Border">
+            <Setter Property="Background" Value="Gray"/>
+            <Setter Property="CornerRadius" Value="3"/>
+            <Setter Property="Padding" Value="5,2"/>
+            <Setter Property="Margin" Value="0,0,5,0"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+        </Style>
+        <Style x:Key="DifficultyTagText" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="FontSize" Value="12"/>
+        </Style>
         <Style x:Key="CardButtonStyle" TargetType="Button">
             <Setter Property="Background" Value="{DynamicResource Sidebar.BackgroundBrush}"/>
             <Setter Property="BorderBrush" Value="{DynamicResource Border.PrimaryBrush}"/>
@@ -28,7 +40,7 @@
                                 BorderThickness="{TemplateBinding BorderThickness}"
                                 CornerRadius="5">
                             <ContentPresenter Margin="15"
-                                              VerticalAlignment="Bottom"
+                                              VerticalAlignment="Top"
                                               HorizontalAlignment="Left"/>
                         </Border>
                         <ControlTemplate.Triggers>
@@ -43,6 +55,15 @@
                 </Setter.Value>
             </Setter>
         </Style>
+        <Style x:Key="SummaryCardStyle" TargetType="Border">
+            <Setter Property="Background" Value="{DynamicResource Sidebar.BackgroundBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource Border.PrimaryBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="5"/>
+            <Setter Property="Padding" Value="20"/>
+            <Setter Property="Margin" Value="10"/>
+            <Setter Property="MinWidth" Value="200"/>
+        </Style>
 
     </UserControl.Resources>
 
@@ -51,40 +72,91 @@
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
+        <!-- Page Title -->
         <TextBlock Grid.Row="0" Text="Statistics"
                    FontSize="28" FontWeight="SemiBold"
                    Foreground="{DynamicResource Text.PrimaryBrush}"
                    Margin="0,0,0,20"/>
 
-        <TextBlock Grid.Row="1" Text="Tests History"
+        <!-- Summary Statistics Cards -->
+        <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,0,0,20">
+            <!-- Tests Last 2 Weeks -->
+            <Border Style="{StaticResource SummaryCardStyle}">
+                <StackPanel>
+                    <TextBlock Text="Tests (Last 2 Weeks)" 
+                               Foreground="Gray" 
+                               FontSize="14"/>
+                    <TextBlock Text="{Binding Summary.TestsTakenLast2Weeks, FallbackValue='0'}" 
+                               FontSize="32" 
+                               FontWeight="Bold" 
+                               Foreground="{DynamicResource Accent.PrimaryBrush}"
+                               Margin="0,5,0,0"/>
+                </StackPanel>
+            </Border>
+
+            <!-- Flashcards Last 2 Weeks -->
+            <Border Style="{StaticResource SummaryCardStyle}">
+                <StackPanel>
+                    <TextBlock Text="Flashcard Sessions (Last 2 Weeks)" 
+                               Foreground="Gray" 
+                               FontSize="14"/>
+                    <TextBlock Text="{Binding Summary.FlashcardSessionsLast2Weeks, FallbackValue='0'}" 
+                               FontSize="32" 
+                               FontWeight="Bold" 
+                               Foreground="{DynamicResource Accent.PrimaryBrush}"
+                               Margin="0,5,0,0"/>
+                </StackPanel>
+            </Border>
+
+            <!-- Average Score -->
+            <Border Style="{StaticResource SummaryCardStyle}">
+                <StackPanel>
+                    <TextBlock Text="Average Score" 
+                               Foreground="Gray" 
+                               FontSize="14"/>
+                    <TextBlock FontSize="32" 
+                               FontWeight="Bold" 
+                               Foreground="{DynamicResource Accent.PrimaryBrush}"
+                               Margin="0,5,0,0">
+                        <Run Text="{Binding Summary.AverageScore, StringFormat='{}{0:F1}', FallbackValue='N/A'}"/>
+                        <Run Text="%" FontSize="24"/>
+                    </TextBlock>
+                </StackPanel>
+            </Border>
+        </StackPanel>
+
+        <!-- Attempt History Header -->
+        <TextBlock Grid.Row="2" Text="Attempt History"
                    FontSize="22" FontWeight="SemiBold"
                    Foreground="{DynamicResource Text.PrimaryBrush}"
                    Margin="0,10,0,10"/>
 
-        <Grid Grid.Row="2" Margin="0,0,10,10">
+        <!-- Search and Filter Controls -->
+        <Grid Grid.Row="3" Margin="0,0,10,10">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
 
-            <TextBox Grid.Column="0" Text="Search..." FontSize="16" Padding="5"
+            <TextBox Grid.Column="0" 
+                     Text="{Binding SearchTerm, UpdateSourceTrigger=PropertyChanged}" 
+                     FontSize="16" Padding="5"
                      MaxWidth="500" HorizontalAlignment="Left" MinWidth="400"
                      VerticalAlignment="Center"/>
 
-            <ComboBox Grid.Column="1" Text="Order by"
-                      IsEditable="True" IsReadOnly="True"
+            <ComboBox Grid.Column="1"
+                      ItemsSource="{Binding SortOptions}"
+                      SelectedItem="{Binding SelectedSortOption}"
                       FontSize="16" Padding="5"
-                      Margin="10,0,10,0" MinWidth="150" VerticalAlignment="Center"/>
-
-            <Button Grid.Column="2" Content="Filter" FontSize="16" Padding="10,5"
-                    MinWidth="100" VerticalAlignment="Center"/>
+                      Margin="10,0,0,0" MinWidth="150" VerticalAlignment="Center"/>
         </Grid>
 
-        <ScrollViewer Grid.Row="3" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+        <!-- Attempt History ScrollViewer -->
+        <ScrollViewer Grid.Row="4" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
 
             <ItemsControl ItemsSource="{Binding AttemptHistory}">
 
@@ -98,9 +170,49 @@
                     <DataTemplate>
                         <Button Style="{StaticResource CardButtonStyle}">
                             <StackPanel>
-                                <TextBlock Text="{Binding CategoryName}" Foreground="Gray" FontSize="12" TextWrapping="Wrap"/>
-                                <TextBlock Text="{Binding BundleName}" FontWeight="SemiBold" FontSize="16" Margin="0,5,0,0" TextWrapping="Wrap"/>
-                                <TextBlock Text="{Binding Timestamp, StringFormat='g'}" Foreground="Gray" FontSize="12" Margin="0,10,0,0"/>
+                                <!-- Attempt Type Badge -->
+                                <Border Background="{DynamicResource Accent.PrimaryBrush}" 
+                                        CornerRadius="3" 
+                                        Padding="5,2" 
+                                        HorizontalAlignment="Left"
+                                        Margin="0,0,0,8">
+                                    <TextBlock Text="{Binding AttemptType}" 
+                                               Foreground="White" 
+                                               FontSize="10" 
+                                               FontWeight="Bold"/>
+                                </Border>
+                                
+                                <!-- Difficulty + Topic Name (same row) -->
+                                <StackPanel Orientation="Horizontal">
+                                    <Border Style="{StaticResource DifficultyTagStyle}">
+                                        <TextBlock Text="{Binding DifficultyLevel, TargetNullValue='N/A'}" 
+                                                   Style="{StaticResource DifficultyTagText}"/>
+                                    </Border>
+                                    <TextBlock Text="{Binding TopicName, TargetNullValue='General'}" 
+                                               Foreground="Gray" 
+                                               FontSize="14" 
+                                               VerticalAlignment="Center"/>
+                                </StackPanel>
+                                
+                                <!-- Title -->
+                                <TextBlock Text="{Binding Title}" 
+                                           FontWeight="SemiBold" 
+                                           FontSize="20" 
+                                           Margin="0,10,0,0" 
+                                           TextWrapping="Wrap"/>
+                                
+                                <!-- Score -->
+                                <TextBlock Margin="0,10,0,0" FontSize="14">
+                                    <Run Text="Score: " Foreground="Gray"/>
+                                    <Run Text="{Binding Score, StringFormat='{}{0:F1}%', TargetNullValue='N/A'}" 
+                                         FontWeight="SemiBold"/>
+                                </TextBlock>
+                                
+                                <!-- Timestamp -->
+                                <TextBlock Text="{Binding StartedAt, StringFormat='g'}" 
+                                           Foreground="Gray" 
+                                           FontSize="12" 
+                                           Margin="0,10,0,0"/>
                             </StackPanel>
                         </Button>
                     </DataTemplate>
