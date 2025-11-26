@@ -67,11 +67,11 @@
             this.createTestVm.NavigationRequested += this.OnNavigationRequested;
 
             this.generateTestVm.NavigationRequested += this.OnNavigationRequested;
+            this.generateTestVm.TestSessionGenerated += this.OnTestSessionGenerated;
             this.testListVm.NavigationRequested += this.OnNavigationRequested;
             this.testSessionVm.NavigationRequested += this.OnNavigationRequested;
             this.CurrentViewModel = this.profileVm;
             this.LoadPageData(this.CurrentViewModel);
-            this.createTestVm = createTestVm;
         }
 
         public ViewModelBase CurrentViewModel
@@ -87,6 +87,16 @@
             this.sessionVm.LoadSession(cards);
             this.CurrentViewModel = this.sessionVm;
         }
+
+        private void OnTestSessionGenerated(List<TestSessionDto> tests)
+        {
+            if (tests != null && tests.Count > 0)
+            {
+                this.testSessionVm.LoadTest(tests[0]);
+                this.CurrentViewModel = this.testSessionVm;
+            }
+        }
+
 
         private void OnNavigationRequested(string navigationKey)
         {

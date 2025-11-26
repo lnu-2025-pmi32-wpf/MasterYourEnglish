@@ -91,5 +91,15 @@ namespace MasterYourEnglish.Presentation.ViewModels
 
             NavigationRequested?.Invoke($"SessionResults:{score}:{_currentTest.Questions.Count}:Tests");
         }
+
+        public void LoadTest(TestSessionDto test)
+        {
+            _currentTest = test;
+
+            _currentIndex = 0;
+            _userAnswers.Clear();
+
+            LoadCurrentQuestion();
+        }
     }
 }

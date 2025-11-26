@@ -97,7 +97,6 @@
             services.AddTransient<CreateBundleViewModel>();
             services.AddTransient<TestSessionViewModel>();
             services.AddTransient<CreateTestViewModel>();
-
             services.AddTransient<GenerateTestViewModel>();
         }
 
