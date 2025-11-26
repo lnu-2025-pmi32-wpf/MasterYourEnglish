@@ -1,81 +1,93 @@
-﻿namespace MasterYourEnglish.Presentation.ViewModels
-{
-    using System;
-    using System.Collections.Generic;
-    using System.Collections.ObjectModel;
-    using System.Linq;
-    using System.Threading.Tasks;
-    using System.Windows.Input;
-    using MasterYourEnglish.BLL.Interfaces;
-    using MasterYourEnglish.BLL.Models.DTOs;
-    using MasterYourEnglish.Presentation.ViewModels.Commands;
+﻿using MasterYourEnglish.BLL.DTOs;
+using MasterYourEnglish.BLL.Interfaces;
+using MasterYourEnglish.BLL.Models.DTOs;
+using MasterYourEnglish.Presentation.ViewModels.Commands;
+using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Linq;
+using System.Threading.Tasks;
+using System.Windows;
+using System.Windows.Input;
 
+namespace MasterYourEnglish.Presentation.ViewModels
+{
     public class TestListViewModel : ViewModelBase, IPageViewModel
     {
-        private readonly ITestService testService;
-        private bool isLoading = false;
-        private string searchTerm;
-        private string selectedSortOption;
+        private readonly ITestService _testService;
+        private bool _isLoading = false;
 
-        public TestListViewModel(ITestService testService)
-        {
-            this.testService = testService;
-            this.TestCards = new ObservableCollection<TestCardDto>();
-            this.SortOptions = new List<string> { "Name (A-Z)", "Name (Z-A)", "Level (Easy-Hard)", "Level (Hard-Easy)" };
-            this.selectedSortOption = this.SortOptions.First();
-            this.StartTestCommand = new RelayCommand(this.OnStartTest);
-        }
-
-        public event Action<string> NavigationRequested;
-
+        // --- Data for UI ---
         public ObservableCollection<TestCardDto> TestCards { get; }
 
+        // --- Navigation Event ---
+        public event Action<string> NavigationRequested;
+
+        // --- Search & Sort ---
+        private string _searchTerm;
         public string SearchTerm
         {
-            get => this.searchTerm;
+            get => _searchTerm;
             set
             {
-                this.SetProperty(ref this.searchTerm, value);
-                this.LoadDataAsync();
+                SetProperty(ref _searchTerm, value);
+                LoadDataAsync();
             }
         }
 
         public List<string> SortOptions { get; }
-
+        private string _selectedSortOption;
         public string SelectedSortOption
         {
-            get => this.selectedSortOption;
+            get => _selectedSortOption;
             set
             {
-                this.SetProperty(ref this.selectedSortOption, value);
-                this.LoadDataAsync();
+                SetProperty(ref _selectedSortOption, value);
+                LoadDataAsync();
             }
         }
 
+        public ICommand NavigateToCreateCommand { get; }
+        public ICommand NavigateToGenerateCommand { get; }
         public ICommand StartTestCommand { get; }
+
+        public TestListViewModel(ITestService testService)
+        {
+            _testService = testService;
+            TestCards = new ObservableCollection<TestCardDto>();
+
+            SortOptions = new List<string> { "Name (A-Z)", "Name (Z-A)", "Level (Easy-Hard)", "Level (Hard-Easy)" };
+            _selectedSortOption = SortOptions.First();
+
+            NavigateToCreateCommand = new RelayCommand(p => NavigationRequested?.Invoke("CreateTest"));
+            NavigateToGenerateCommand = new RelayCommand(p => NavigationRequested?.Invoke("GenerateTest"));
+            StartTestCommand = new RelayCommand(OnStartTest);
+        }
 
         public async Task LoadDataAsync()
         {
-            if (this.isLoading)
-            {
-                return;
-            }
+            if (_isLoading) return;
+            _isLoading = true;
 
-            this.isLoading = true;
             try
             {
-                string sortBy = this.selectedSortOption.Contains("Name") ? "Name" : "Level";
-                bool ascending = this.selectedSortOption.Contains("(A-Z)") || this.selectedSortOption.Contains("(Easy-Hard)");
-                var tests = await this.testService.GetPublishedTestsAsync(this.SearchTerm, sortBy, ascending);
-                this.TestCards.Clear();
-                foreach (var test in tests)
+                string sortBy = _selectedSortOption.Contains("Name") ? "Name" : "Level";
+                bool ascending = _selectedSortOption.Contains("(A-Z)") || _selectedSortOption.Contains("(Easy-Hard)");
+
+                var tests = await _testService.GetPublishedTestsAsync(SearchTerm, sortBy, ascending);
+
+                Application.Current.Dispatcher.Invoke(() =>
                 {
-                    this.TestCards.Add(test);
-                }
+                    TestCards.Clear();
+                    foreach (var test in tests)
+                    {
+                        TestCards.Add(test);
+                    }
+                });
             }
             finally
             {
-                this.isLoading = false;
+                _isLoading = false;
             }
         }
 
@@ -83,7 +95,7 @@
         {
             if (parameter is TestCardDto test)
             {
-                // NavigationRequested?.Invoke($"TestSession:{test.TestId}");
+                NavigationRequested?.Invoke($"TestSession:{test.TestId}");
             }
         }
     }

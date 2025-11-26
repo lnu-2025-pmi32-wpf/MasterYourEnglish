@@ -8,11 +8,12 @@
     {
         private int knownCount;
         private int totalCount;
+        private string returnNavigationKey = "Flashcards";
 
         public SessionResultsViewModel()
         {
             this.FinishCommand = new RelayCommand(
-                p => this.NavigationRequested?.Invoke("Flashcards"));
+                p => this.NavigationRequested?.Invoke(this.returnNavigationKey));
         }
 
         public event Action<string> NavigationRequested;
@@ -31,10 +32,11 @@
 
         public ICommand FinishCommand { get; }
 
-        public void ShowResults(int known, int total)
+        public void ShowResults(int known, int total, string returnKey)
         {
             this.KnownCount = known;
             this.TotalCount = total;
+            this.returnNavigationKey = returnKey;
         }
     }
 }

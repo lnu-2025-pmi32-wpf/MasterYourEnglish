@@ -134,6 +134,19 @@
 
             int newBundleId = await this.bundleService.CreateNewBundleAsync(newBundleDto, userId);
 
+            Title = "New Test";
+            Description = "";
+            Difficulty = "B2";
+            NewFlashcards.Clear();
+            if (AvailableTopics.Count > 0) SelectedTopic = AvailableTopics[0];
+
+            newWord = "";
+            newMeaning = "";
+            newExample = "";
+            newTranscription = "";
+            newPartOfSpeech = "";
+
+
             this.NavigationRequested?.Invoke($"FlashcardSession:{newBundleId}");
         }
     }

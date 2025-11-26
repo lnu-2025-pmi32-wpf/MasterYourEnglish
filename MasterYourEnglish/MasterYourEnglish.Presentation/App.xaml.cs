@@ -61,6 +61,12 @@
             services.AddScoped<IFlashcardRepository, FlashcardRepository>();
             services.AddScoped<IFlashcardsBundleAttemptRepository, FlashcardsBundleAttemptRepository>();
             services.AddScoped<IRepository<Topic>, Repository<Topic>>();
+            services.AddScoped<IRepository<Question>, Repository<Question>>();
+            services.AddScoped<IRepository<QuestionOption>, Repository<QuestionOption>>();
+            services.AddScoped<IRepository<TestQuestion>, Repository<TestQuestion>>();
+            services.AddScoped<ITestAttemptRepository, TestAttemptRepository>();
+            services.AddScoped<IRepository<TestAttemptAnswer>, Repository<TestAttemptAnswer>>();
+            services.AddScoped<IRepository<TestAttemptAnswerSelectedOption>, Repository<TestAttemptAnswerSelectedOption>>();
 
             services.AddTransient<IAuthService, AuthService>();
             services.AddTransient<ITestService, TestService>();
@@ -69,6 +75,7 @@
             services.AddTransient<IFlashcardBundleService, FlashcardBundleService>();
             services.AddTransient<IFlashcardService, FlashcardService>();
             services.AddTransient<ITopicService, TopicService>();
+
 
             services.AddScoped<IRepository<FlashcardAttemptAnswer>, Repository<FlashcardAttemptAnswer>>();
             services.AddTransient<MainViewModel>();
@@ -88,6 +95,9 @@
             services.AddTransient<SessionResultsViewModel>();
             services.AddTransient<GenerateBundleViewModel>();
             services.AddTransient<CreateBundleViewModel>();
+            services.AddTransient<TestSessionViewModel>();
+            services.AddTransient<CreateTestViewModel>();
+            services.AddTransient<GenerateTestViewModel>();
         }
 
         private void ShowLoginView()

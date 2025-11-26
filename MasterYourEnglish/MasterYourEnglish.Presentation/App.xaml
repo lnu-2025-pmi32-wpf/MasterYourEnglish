@@ -45,8 +45,20 @@
                 <views:GenerateBundleView/>
             </DataTemplate>
 
+            <DataTemplate DataType="{x:Type vms:CreateTestViewModel}">
+                <views:CreateTestView/>
+            </DataTemplate>
+
+            <DataTemplate DataType="{x:Type vms:GenerateTestViewModel}">
+                <views:GenerateTestView/>
+            </DataTemplate>
+
             <DataTemplate DataType="{x:Type vms:CreateBundleViewModel}">
                 <views:CreateBundleView/>
+            </DataTemplate>
+
+            <DataTemplate DataType="{x:Type vms:TestSessionViewModel}">
+                <views:TestSessionView/>
             </DataTemplate>
         </ResourceDictionary>
     </Application.Resources>
