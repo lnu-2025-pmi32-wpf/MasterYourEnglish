@@ -7,20 +7,20 @@ public abstract class DalTestBase : IDisposable
 
     public DalTestBase()
     {
-        
+
         var options = new DbContextOptionsBuilder<ApplicationDbContext>()
-            
+
             .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
             .Options;
 
-        
+
         Context = new ApplicationDbContext(options);
 
-        
+
         Context.Database.EnsureCreated();
     }
 
-    
+
     public void Dispose()
     {
         Context.Database.EnsureDeleted();

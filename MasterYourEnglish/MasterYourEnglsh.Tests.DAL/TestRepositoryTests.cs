@@ -9,7 +9,7 @@ using System.Collections.Generic;
 
 public class TestRepositoryTests : DalTestBase
 {
-    
+
 
     [Fact]
     public async Task AddAsync_ShouldInsertNewTest()
@@ -41,11 +41,11 @@ public class TestRepositoryTests : DalTestBase
         Assert.Null(testInDb);
     }
 
-   
+
     [Fact]
     public async Task GetPublishedTestsWithDetailsAsync_ShouldFilterAndIncludeTopic()
     {
-       
+
         var topic = new Topic { TopicId = 1, Name = "Physics" };
         var publishedTest = new Test { TestId = 100, Title = "Pub Test", IsPublished = true, TopicId = 1, Topic = topic, CreatedAt = DateTime.Now };
         var unpublishedTest = new Test { TestId = 101, Title = "Unpub Test", IsPublished = false, TopicId = 1, Topic = topic, CreatedAt = DateTime.Now };
@@ -56,15 +56,15 @@ public class TestRepositoryTests : DalTestBase
 
         var repository = new TestRepository(Context);
 
-        
+
         var result = await repository.GetPublishedTestsWithDetailsAsync();
 
-        
+
         Assert.Single(result);
         var actualTest = result.First();
 
         Assert.Equal("Pub Test", actualTest.Title);
-        
+
         Assert.NotNull(actualTest.Topic);
         Assert.Equal("Physics", actualTest.Topic.Name);
     }

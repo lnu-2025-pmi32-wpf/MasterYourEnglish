@@ -7,10 +7,12 @@
     using MasterYourEnglish.BLL.Interfaces;
     using MasterYourEnglish.BLL.Models.DTOs;
     using MasterYourEnglish.Presentation.ViewModels.Commands;
+    using Microsoft.Extensions.Logging;
 
     public class RegisterViewModel : ViewModelBase
     {
         private readonly IAuthService authService;
+        private readonly ILogger<RegisterViewModel> logger;
         private readonly Action onRegisterSuccess;
         private readonly Action onShowLogin;
         private string firstName = string.Empty;
@@ -19,13 +21,21 @@
         private string email = string.Empty;
         private string errorMessage = string.Empty;
 
-        public RegisterViewModel(IAuthService authService, Action onRegisterSuccess, Action onShowLogin)
+        public RegisterViewModel(
+            IAuthService authService,
+            ILogger<RegisterViewModel> logger,
+            Action onRegisterSuccess,
+            Action onShowLogin)
         {
             this.authService = authService;
+            this.logger = logger;
             this.onRegisterSuccess = onRegisterSuccess;
             this.onShowLogin = onShowLogin;
+
             this.RegisterCommand = new RelayCommand(async (param) => await this.OnRegister(param));
             this.ShowLoginCommand = new RelayCommand(p => this.onShowLogin());
+
+            this.logger.LogInformation("RegisterViewModel initialized.");
         }
 
         public string FirstName
@@ -66,6 +76,7 @@
         {
             if (parameter is not PasswordBox passwordBox)
             {
+                this.logger.LogWarning("Register command executed without PasswordBox parameter.");
                 return;
             }
 
@@ -73,6 +84,7 @@
             if (string.IsNullOrWhiteSpace(this.FirstName) || string.IsNullOrWhiteSpace(this.Username) || string.IsNullOrWhiteSpace(password))
             {
                 this.ErrorMessage = "Please fill out all required fields.";
+                this.logger.LogWarning("Registration failed: Missing required fields.");
                 return;
             }
 
@@ -85,14 +97,26 @@
                 Password = password,
             };
 
-            bool success = await this.authService.RegisterAsync(registerDto);
-            if (success)
+            this.logger.LogInformation("Attempting to register user: {Username}", this.Username);
+
+            try
             {
-                this.onRegisterSuccess();
+                bool success = await this.authService.RegisterAsync(registerDto);
+                if (success)
+                {
+                    this.logger.LogInformation("User {Username} registered successfully.", this.Username);
+                    this.onRegisterSuccess();
+                }
+                else
+                {
+                    this.ErrorMessage = "Registration failed. Username may be taken.";
+                    this.logger.LogWarning("Registration failed for user {Username}. Service returned false.", this.Username);
+                }
             }
-            else
+            catch (Exception ex)
             {
-                this.ErrorMessage = "Registration failed. Username may be taken.";
+                this.ErrorMessage = "An unexpected error occurred during registration.";
+                this.logger.LogError(ex, "Exception during registration for user {Username}.", this.Username);
             }
         }
     }

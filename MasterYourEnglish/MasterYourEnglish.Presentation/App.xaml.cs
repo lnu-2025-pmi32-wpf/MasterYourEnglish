@@ -14,6 +14,8 @@
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Hosting;
+    using Microsoft.Extensions.Logging;
+    using Serilog;
 
     public partial class App : Application
     {
@@ -28,6 +30,10 @@
                     config.SetBasePath(Directory.GetCurrentDirectory());
                     config.AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
                 })
+                .UseSerilog((hostingContext, loggerConfiguration) =>
+                {
+                    loggerConfiguration.ReadFrom.Configuration(hostingContext.Configuration);
+                })
                 .ConfigureServices((context, services) =>
                 {
                     this.ConfigureServices(context.Configuration, services);
@@ -38,11 +44,15 @@
         protected override async void OnStartup(StartupEventArgs e)
         {
             await host.StartAsync();
+            var logger = host.Services.GetRequiredService<ILogger<App>>();
+            logger.LogInformation("Application starting up.");
             this.ShowLoginView();
         }
 
         protected override async void OnExit(ExitEventArgs e)
         {
+            var logger = host.Services.GetRequiredService<ILogger<App>>();
+            logger.LogInformation("Application shutting down.");
             await host.StopAsync();
             host.Dispose();
             base.OnExit(e);
@@ -77,7 +87,6 @@
             services.AddTransient<ITopicService, TopicService>();
             services.AddTransient<IStatisticsService, StatisticsService>();
 
-
             services.AddScoped<IRepository<FlashcardAttemptAnswer>, Repository<FlashcardAttemptAnswer>>();
             services.AddTransient<MainViewModel>();
             services.AddTransient<SidebarViewModel>();
@@ -104,7 +113,8 @@
         private void ShowLoginView()
         {
             var loginViewModel = new LoginViewModel(
-                host.Services.GetRequiredService<IAuthService>(),
+                authService: host.Services.GetRequiredService<IAuthService>(),
+                logger: host.Services.GetRequiredService<ILogger<LoginViewModel>>(),
                 onLoginSuccess: () =>
                 {
                     this.ShowMainWindow();
@@ -115,18 +125,17 @@
                 });
 
             var newWindow = new LoginView(loginViewModel);
-
             newWindow.Show();
 
             this.currentWindow?.Close();
-
             this.currentWindow = newWindow;
         }
 
         private void ShowRegisterView()
         {
             var registerViewModel = new RegisterViewModel(
-                host.Services.GetRequiredService<IAuthService>(),
+                authService: host.Services.GetRequiredService<IAuthService>(),
+                logger: host.Services.GetRequiredService<ILogger<RegisterViewModel>>(),
                 onRegisterSuccess: () =>
                 {
                     this.ShowLoginView();
@@ -137,22 +146,18 @@
                 });
 
             var newWindow = new RegisterView(registerViewModel);
-
             newWindow.Show();
 
             this.currentWindow?.Close();
-
             this.currentWindow = newWindow;
         }
 
         private void ShowMainWindow()
         {
             var newWindow = host.Services.GetRequiredService<MainWindow>();
-
             newWindow.Show();
 
             this.currentWindow?.Close();
-
             this.currentWindow = newWindow;
         }
     }

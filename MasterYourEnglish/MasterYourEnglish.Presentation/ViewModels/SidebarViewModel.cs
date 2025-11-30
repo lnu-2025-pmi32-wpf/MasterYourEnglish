@@ -3,21 +3,48 @@
     using System;
     using System.Windows.Input;
     using MasterYourEnglish.Presentation.ViewModels.Commands;
+    using Microsoft.Extensions.Logging;
 
     public class SidebarViewModel : ViewModelBase
     {
-        public SidebarViewModel()
+        private readonly ILogger<SidebarViewModel> logger;
+
+        public SidebarViewModel(ILogger<SidebarViewModel> logger)
         {
+            this.logger = logger;
+
             this.NavigateToProfileCommand = new RelayCommand(
-                () => this.NavigationRequested?.Invoke("Profile"));
+                p =>
+                {
+                    this.logger.LogInformation("Sidebar navigation requested: Profile");
+                    this.NavigationRequested?.Invoke("Profile");
+                });
             this.NavigateToFlashcardsCommand = new RelayCommand(
-                () => this.NavigationRequested?.Invoke("Flashcards"));
+                p =>
+                {
+                    this.logger.LogInformation("Sidebar navigation requested: Flashcards");
+                    this.NavigationRequested?.Invoke("Flashcards");
+                });
             this.NavigateToTestsCommand = new RelayCommand(
-                () => this.NavigationRequested?.Invoke("Tests"));
+                p =>
+                {
+                    this.logger.LogInformation("Sidebar navigation requested: Tests");
+                    this.NavigationRequested?.Invoke("Tests");
+                });
             this.NavigateToStatisticsCommand = new RelayCommand(
-                () => this.NavigationRequested?.Invoke("Statistics"));
+                p =>
+                {
+                    this.logger.LogInformation("Sidebar navigation requested: Statistics");
+                    this.NavigationRequested?.Invoke("Statistics");
+                });
             this.NavigateToSettingsCommand = new RelayCommand(
-                () => this.NavigationRequested?.Invoke("Settings"));
+                p =>
+                {
+                    this.logger.LogInformation("Sidebar navigation requested: Settings");
+                    this.NavigationRequested?.Invoke("Settings");
+                });
+
+            this.logger.LogInformation("SidebarViewModel initialized.");
         }
 
         public event Action<string> NavigationRequested;

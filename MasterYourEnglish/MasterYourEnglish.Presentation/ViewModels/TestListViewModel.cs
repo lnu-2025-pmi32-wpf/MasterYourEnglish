@@ -1,93 +1,120 @@
-﻿using MasterYourEnglish.BLL.DTOs;
-using MasterYourEnglish.BLL.Interfaces;
-using MasterYourEnglish.BLL.Models.DTOs;
-using MasterYourEnglish.Presentation.ViewModels.Commands;
-using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Linq;
-using System.Threading.Tasks;
-using System.Windows;
-using System.Windows.Input;
-
-namespace MasterYourEnglish.Presentation.ViewModels
+﻿namespace MasterYourEnglish.Presentation.ViewModels
 {
+    using System;
+    using System.Collections.Generic;
+    using System.Collections.ObjectModel;
+    using System.Linq;
+    using System.Threading.Tasks;
+    using System.Windows;
+    using System.Windows.Input;
+    using MasterYourEnglish.BLL.DTOs;
+    using MasterYourEnglish.BLL.Interfaces;
+    using MasterYourEnglish.BLL.Models.DTOs;
+    using MasterYourEnglish.Presentation.ViewModels.Commands;
+    using Microsoft.Extensions.Logging;
+
     public class TestListViewModel : ViewModelBase, IPageViewModel
     {
-        private readonly ITestService _testService;
-        private bool _isLoading = false;
+        private readonly ITestService testService;
+        private readonly ILogger<TestListViewModel> logger;
+        private bool isLoading = false;
 
-        // --- Data for UI ---
         public ObservableCollection<TestCardDto> TestCards { get; }
 
-        // --- Navigation Event ---
         public event Action<string> NavigationRequested;
 
-        // --- Search & Sort ---
-        private string _searchTerm;
+        private string searchTerm;
+
         public string SearchTerm
         {
-            get => _searchTerm;
+            get => this.searchTerm;
             set
             {
-                SetProperty(ref _searchTerm, value);
-                LoadDataAsync();
+                if (this.SetProperty(ref this.searchTerm, value))
+                {
+                    _ = this.LoadDataAsync();
+                }
             }
         }
 
         public List<string> SortOptions { get; }
-        private string _selectedSortOption;
+
+        private string selectedSortOption;
+
         public string SelectedSortOption
         {
-            get => _selectedSortOption;
+            get => this.selectedSortOption;
             set
             {
-                SetProperty(ref _selectedSortOption, value);
-                LoadDataAsync();
+                if (this.SetProperty(ref this.selectedSortOption, value))
+                {
+                    _ = this.LoadDataAsync();
+                }
             }
         }
 
         public ICommand NavigateToCreateCommand { get; }
+
         public ICommand NavigateToGenerateCommand { get; }
+
         public ICommand StartTestCommand { get; }
 
-        public TestListViewModel(ITestService testService)
+        public TestListViewModel(
+            ITestService testService,
+            ILogger<TestListViewModel> logger)
         {
-            _testService = testService;
-            TestCards = new ObservableCollection<TestCardDto>();
+            this.testService = testService;
+            this.logger = logger;
 
-            SortOptions = new List<string> { "Name (A-Z)", "Name (Z-A)", "Level (Easy-Hard)", "Level (Hard-Easy)" };
-            _selectedSortOption = SortOptions.First();
+            this.TestCards = new ObservableCollection<TestCardDto>();
 
-            NavigateToCreateCommand = new RelayCommand(p => NavigationRequested?.Invoke("CreateTest"));
-            NavigateToGenerateCommand = new RelayCommand(p => NavigationRequested?.Invoke("GenerateTest"));
-            StartTestCommand = new RelayCommand(OnStartTest);
+            this.SortOptions = new List<string> { "Name (A-Z)", "Name (Z-A)", "Level (Easy-Hard)", "Level (Hard-Easy)" };
+            this.selectedSortOption = this.SortOptions.First();
+
+            this.NavigateToCreateCommand = new RelayCommand(p => this.NavigationRequested?.Invoke("CreateTest"));
+            this.NavigateToGenerateCommand = new RelayCommand(p => this.NavigationRequested?.Invoke("GenerateTest"));
+            this.StartTestCommand = new RelayCommand(this.OnStartTest);
+
+            this.logger.LogInformation("TestListViewModel initialized.");
         }
 
         public async Task LoadDataAsync()
         {
-            if (_isLoading) return;
-            _isLoading = true;
+            if (this.isLoading)
+            {
+                this.logger.LogDebug("LoadDataAsync skipped, already loading.");
+                return;
+            }
+
+            this.isLoading = true;
+            this.logger.LogInformation(
+                "Starting to load published tests. SearchTerm: '{Term}', Sort: {Sort}",
+                this.searchTerm,
+                this.selectedSortOption);
 
             try
             {
-                string sortBy = _selectedSortOption.Contains("Name") ? "Name" : "Level";
-                bool ascending = _selectedSortOption.Contains("(A-Z)") || _selectedSortOption.Contains("(Easy-Hard)");
+                string sortBy = this.selectedSortOption.Contains("Name") ? "Name" : "Level";
+                bool ascending = this.selectedSortOption.Contains("(A-Z)") || this.selectedSortOption.Contains("(Easy-Hard)");
 
-                var tests = await _testService.GetPublishedTestsAsync(SearchTerm, sortBy, ascending);
+                var tests = await this.testService.GetPublishedTestsAsync(this.searchTerm, sortBy, ascending);
 
                 Application.Current.Dispatcher.Invoke(() =>
                 {
-                    TestCards.Clear();
+                    this.TestCards.Clear();
                     foreach (var test in tests)
                     {
-                        TestCards.Add(test);
+                        this.TestCards.Add(test);
                     }
                 });
             }
+            catch (Exception ex)
+            {
+                this.logger.LogError(ex, "Failed to load published tests.");
+            }
             finally
             {
-                _isLoading = false;
+                this.isLoading = false;
             }
         }
 
@@ -95,7 +122,12 @@ namespace MasterYourEnglish.Presentation.ViewModels
         {
             if (parameter is TestCardDto test)
             {
-                NavigationRequested?.Invoke($"TestSession:{test.TestId}");
+                this.logger.LogInformation("Starting test session for test ID: {Id}", test.TestId);
+                this.NavigationRequested?.Invoke($"TestSession:{test.TestId}");
+            }
+            else
+            {
+                this.logger.LogWarning("Attempted to start test session without valid test parameter.");
             }
         }
     }

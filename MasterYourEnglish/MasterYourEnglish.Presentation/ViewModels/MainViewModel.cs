@@ -2,8 +2,10 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Linq;
     using System.Threading.Tasks;
     using MasterYourEnglish.BLL.DTOs;
+    using Microsoft.Extensions.Logging;
 
     public class MainViewModel : ViewModelBase
     {
@@ -18,10 +20,9 @@
         private readonly GenerateBundleViewModel generateBundleVm;
         private readonly CreateBundleViewModel createBundleVm;
         private readonly CreateTestViewModel createTestVm;
-
-
         private readonly GenerateTestViewModel generateTestVm;
         private readonly TestSessionViewModel testSessionVm;
+        private readonly ILogger<MainViewModel> logger;
         private ViewModelBase currentViewModel;
 
         public MainViewModel(
@@ -38,7 +39,8 @@
             CreateBundleViewModel createBundleVm,
             CreateTestViewModel createTestVm,
             GenerateTestViewModel generateTestVm,
-            TestSessionViewModel testSessionVm)
+            TestSessionViewModel testSessionVm,
+            ILogger<MainViewModel> logger)
         {
             this.SidebarVm = sidebarViewModel;
             this.profileVm = profileVm;
@@ -55,6 +57,7 @@
 
             this.generateTestVm = generateTestVm;
             this.testSessionVm = testSessionVm;
+            this.logger = logger;
 
             this.SidebarVm.NavigationRequested += this.OnNavigationRequested;
             this.flashcardsVm.NavigationRequested += this.OnNavigationRequested;
@@ -72,6 +75,7 @@
             this.testSessionVm.NavigationRequested += this.OnNavigationRequested;
             this.CurrentViewModel = this.profileVm;
             this.LoadPageData(this.CurrentViewModel);
+            this.logger.LogInformation("Main application shell initialized.");
         }
 
         public ViewModelBase CurrentViewModel
@@ -84,6 +88,7 @@
 
         private void OnSessionGenerated(List<FlashcardSessionDto> cards)
         {
+            this.logger.LogInformation("Generated flashcard session received. Starting session.");
             this.sessionVm.LoadSession(cards);
             this.CurrentViewModel = this.sessionVm;
         }
@@ -92,15 +97,20 @@
         {
             if (tests != null && tests.Count > 0)
             {
+                this.logger.LogInformation("Generated test session received. Starting test ID: {TestId}", tests[0].TestId);
                 this.testSessionVm.LoadTest(tests[0]);
                 this.CurrentViewModel = this.testSessionVm;
             }
+            else
+            {
+                this.logger.LogWarning("Generated test session received was null or empty.");
+            }
         }
-
 
         private void OnNavigationRequested(string navigationKey)
         {
             ViewModelBase newPage = this.CurrentViewModel;
+            this.logger.LogInformation("Navigation requested: {Key}", navigationKey);
 
             if (navigationKey.StartsWith("FlashcardSession:"))
             {
@@ -110,17 +120,23 @@
                     this.sessionVm.LoadSession(bundleId);
                     newPage = this.sessionVm;
                 }
+                else
+                {
+                    this.logger.LogError("Failed to parse bundle ID from navigation key: {Key}", navigationKey);
+                }
             }
             else if (navigationKey.StartsWith("SessionResults:"))
             {
                 var parts = navigationKey.Split(':');
-                int known = int.Parse(parts[1]);
-                int total = int.Parse(parts[2]);
-                string returnKey = "Flashcards";
-                if (parts.Length > 3)
+                if (parts.Length < 3 || !int.TryParse(parts[1], out int known) || !int.TryParse(parts[2], out int total))
                 {
-                    returnKey = parts[3];
+                    this.logger.LogError("Invalid SessionResults format: {Key}", navigationKey);
+                    return;
                 }
+
+                string returnKey = parts.Length > 3 ? parts[3] : "Flashcards";
+
+                this.logger.LogDebug("Showing results: Known={Known}, Total={Total}, ReturnKey={ReturnKey}", known, total, returnKey);
 
                 this.sessionResultsVm.ShowResults(known, total, returnKey);
 
@@ -134,6 +150,10 @@
                     this.testSessionVm.LoadTest(testId);
                     newPage = this.testSessionVm;
                 }
+                else
+                {
+                    this.logger.LogError("Failed to parse test ID from navigation key: {Key}", navigationKey);
+                }
             }
             else
             {
@@ -146,26 +166,26 @@
                     case "Settings": newPage = this.settingsVm; break;
                     case "SavedFlashcards": newPage = this.savedVm; break;
                     case "TestSavedFlashcards":
+                        this.logger.LogInformation("Navigating to saved flashcards session.");
                         this.sessionVm.LoadSessionFromSaved();
                         newPage = this.sessionVm;
                         break;
-                    case "GenerateBundle":
-                        newPage = this.generateBundleVm;
-                        break;
-                    case "CreateBundle":
-                        newPage = this.createBundleVm;
-                        break;
-                    case "CreateTest":
-                        newPage = this.createTestVm;
-                        break;
-                    case "GenerateTest":
-                        newPage = this.generateTestVm;
-                        break;
+                    case "GenerateBundle": newPage = this.generateBundleVm; break;
+                    case "CreateBundle": newPage = this.createBundleVm; break;
+                    case "CreateTest": newPage = this.createTestVm; break;
+                    case "GenerateTest": newPage = this.generateTestVm; break;
+                    default:
+                        this.logger.LogWarning("Unrecognized navigation key: {Key}", navigationKey);
+                        return;
                 }
             }
 
             if (newPage != this.CurrentViewModel)
             {
+                this.logger.LogInformation(
+                    "Switching view model from {Old} to {New}",
+                    this.CurrentViewModel.GetType().Name,
+                    newPage.GetType().Name);
                 this.CurrentViewModel = newPage;
                 this.LoadPageData(this.CurrentViewModel);
             }
@@ -175,6 +195,7 @@
         {
             if (vm is IPageViewModel page)
             {
+                this.logger.LogDebug("Calling LoadDataAsync for {ViewModelName}", vm.GetType().Name);
                 await page.LoadDataAsync();
             }
         }

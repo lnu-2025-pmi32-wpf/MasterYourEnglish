@@ -1,20 +1,26 @@
-﻿using MasterYourEnglish.BLL.DTOs;
-using MasterYourEnglish.BLL.Interfaces;
-using MasterYourEnglish.BLL.Models.DTOs;
-using MasterYourEnglish.DAL.Entities;
-using MasterYourEnglish.DAL.Interfaces;
-
-namespace MasterYourEnglish.BLL.Services
+﻿namespace MasterYourEnglish.BLL.Services
 {
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+    using System.Threading.Tasks;
+    using MasterYourEnglish.BLL.DTOs;
+    using MasterYourEnglish.BLL.Interfaces;
+    using MasterYourEnglish.BLL.Models.DTOs;
+    using MasterYourEnglish.DAL.Entities;
+    using MasterYourEnglish.DAL.Interfaces;
+    using Microsoft.Extensions.Logging;
+
     public class TestService : ITestService
     {
-        private readonly ITestRepository _testRepository;
-        private readonly IRepository<Question> _questionRepository;
-        private readonly IRepository<QuestionOption> _optionRepository;
-        private readonly IRepository<TestQuestion> _testQuestionRepository;
-        private readonly ITestAttemptRepository _attemptRepository;
-        private readonly IRepository<TestAttemptAnswer> _attemptAnswerRepository;
-        private readonly IRepository<TestAttemptAnswerSelectedOption> _selectedOptionRepository;
+        private readonly ITestRepository testRepository;
+        private readonly IRepository<Question> questionRepository;
+        private readonly IRepository<QuestionOption> optionRepository;
+        private readonly IRepository<TestQuestion> testQuestionRepository;
+        private readonly ITestAttemptRepository attemptRepository;
+        private readonly IRepository<TestAttemptAnswer> attemptAnswerRepository;
+        private readonly IRepository<TestAttemptAnswerSelectedOption> selectedOptionRepository;
+        private readonly ILogger<TestService> logger;
 
         public TestService(
             ITestRepository testRepository,
@@ -23,188 +29,249 @@ namespace MasterYourEnglish.BLL.Services
             IRepository<TestQuestion> testQuestionRepository,
             ITestAttemptRepository attemptRepository,
             IRepository<TestAttemptAnswer> attemptAnswerRepository,
-            IRepository<TestAttemptAnswerSelectedOption> selectedOptionRepository)
+            IRepository<TestAttemptAnswerSelectedOption> selectedOptionRepository,
+            ILogger<TestService> logger)
         {
-            _testRepository = testRepository;
-            _questionRepository = questionRepository;
-            _optionRepository = optionRepository;
-            _testQuestionRepository = testQuestionRepository;
-            _attemptRepository = attemptRepository;
-            _attemptAnswerRepository = attemptAnswerRepository;
-            _selectedOptionRepository = selectedOptionRepository;
+            this.testRepository = testRepository;
+            this.questionRepository = questionRepository;
+            this.optionRepository = optionRepository;
+            this.testQuestionRepository = testQuestionRepository;
+            this.attemptRepository = attemptRepository;
+            this.attemptAnswerRepository = attemptAnswerRepository;
+            this.selectedOptionRepository = selectedOptionRepository;
+            this.logger = logger;
         }
 
         public async Task<IEnumerable<TestCardDto>> GetPublishedTestsAsync(string searchTerm, string sortBy, bool ascending)
         {
-            var tests = await _testRepository.GetPublishedTestsWithDetailsAsync();
-
-            if (!string.IsNullOrWhiteSpace(searchTerm))
+            this.logger.LogInformation("Getting published tests. Search: '{SearchTerm}', Sort: {SortBy}", searchTerm, sortBy);
+            try
             {
-                string lower = searchTerm.ToLower();
-                tests = tests.Where(t => t.Title.ToLower().Contains(lower));
+                var tests = await this.testRepository.GetPublishedTestsWithDetailsAsync();
+
+                if (!string.IsNullOrWhiteSpace(searchTerm))
+                {
+                    string lower = searchTerm.ToLower();
+                    tests = tests.Where(t => t.Title.ToLower().Contains(lower));
+                }
+
+                switch (sortBy)
+                {
+                    case "Level":
+                        tests = ascending ? tests.OrderBy(t => t.DifficultyLevel) : tests.OrderByDescending(t => t.DifficultyLevel);
+                        break;
+                    default:
+                        tests = ascending ? tests.OrderBy(t => t.Title) : tests.OrderByDescending(t => t.Title);
+                        break;
+                }
+
+                return tests.Select(t => new TestCardDto
+                {
+                    TestId = t.TestId,
+                    TestName = t.Title,
+                    CategoryName = t.Topic?.Name ?? "General",
+                    DifficultyLevel = t.DifficultyLevel ?? "N/A",
+                    Description = t.Description ?? string.Empty,
+                });
             }
-
-            switch (sortBy)
+            catch (Exception ex)
             {
-                case "Level":
-                    tests = ascending ? tests.OrderBy(t => t.DifficultyLevel) : tests.OrderByDescending(t => t.DifficultyLevel);
-                    break;
-                default:
-                    tests = ascending ? tests.OrderBy(t => t.Title) : tests.OrderByDescending(t => t.Title);
-                    break;
+                this.logger.LogError(ex, "Error getting published tests.");
+                throw;
             }
-
-            return tests.Select(t => new TestCardDto
-            {
-                TestId = t.TestId,
-                TestName = t.Title,
-                CategoryName = t.Topic?.Name ?? "General",
-                DifficultyLevel = t.DifficultyLevel ?? "N/A",
-                Description = t.Description ?? ""
-            });
         }
 
         public async Task<TestSessionDto> GetTestSessionAsync(int testId)
         {
-            var test = await _testRepository.GetTestWithDetailsAsync(testId);
-            if (test == null) return null;
-
-            return new TestSessionDto
+            this.logger.LogInformation("Getting test session for test ID {TestId}", testId);
+            try
             {
-                TestId = test.TestId,
-                Title = test.Title,
-                Description = test.Description ?? "",
-                Questions = test.TestQuestions.OrderBy(tq => tq.Position).Select(tq => new TestQuestionDto
+                var test = await this.testRepository.GetTestWithDetailsAsync(testId);
+                if (test == null)
                 {
-                    QuestionId = tq.Question.QuestionId,
-                    Text = tq.Question.Text,
-                    Options = tq.Question.QuestionOptions.Select(o => new TestOptionDto
+                    this.logger.LogWarning("Test with ID {TestId} not found.", testId);
+                    return null;
+                }
+
+                return new TestSessionDto
+                {
+                    TestId = test.TestId,
+                    Title = test.Title,
+                    Description = test.Description ?? string.Empty,
+                    Questions = test.TestQuestions.OrderBy(tq => tq.Position).Select(tq => new TestQuestionDto
                     {
-                        OptionId = o.OptionId,
-                        Text = o.Text
-                    }).ToList()
-                }).ToList()
-            };
+                        QuestionId = tq.Question.QuestionId,
+                        Text = tq.Question.Text,
+                        Options = tq.Question.QuestionOptions.Select(o => new TestOptionDto
+                        {
+                            OptionId = o.OptionId,
+                            Text = o.Text,
+                        }).ToList(),
+                    }).ToList(),
+                };
+            }
+            catch (Exception ex)
+            {
+                this.logger.LogError(ex, "Error getting test session for ID {TestId}", testId);
+                throw;
+            }
         }
 
         public async Task<int> SubmitTestAttemptAsync(int testId, int userId, Dictionary<int, int> answers)
         {
-            int correctCount = 0;
-            int totalQuestions = answers.Count;
-            
-            foreach (var answer in answers)
+            this.logger.LogInformation("Submitting test attempt. TestID: {TestId}, UserID: {UserId}", testId, userId);
+            try
             {
-                var option = await _optionRepository.GetByIdAsync(answer.Value);
-                if (option != null && option.IsCorrect) correctCount++;
-            }
+                int correctCount = 0;
+                int totalQuestions = answers.Count;
 
-            float scorePercentage = totalQuestions > 0 ? (float)correctCount / totalQuestions * 100 : 0;
-
-            var attempt = new TestAttempt
-            {
-                TestId = testId,
-                UserId = userId,
-                StartedAt = DateTime.UtcNow.AddMinutes(-10),
-                FinishedAt = DateTime.UtcNow,
-                Score = scorePercentage
-            };
-            await _attemptRepository.AddAsync(attempt);
-
-            foreach (var answer in answers)
-            {
-                var attemptAnswer = new TestAttemptAnswer
+                foreach (var answer in answers)
                 {
-                    AttemptId = attempt.AttemptId,
-                    QuestionId = answer.Key,
-                    SelectedOptionId = answer.Value
-                };
-                await _attemptAnswerRepository.AddAsync(attemptAnswer);
-            }
+                    var option = await this.optionRepository.GetByIdAsync(answer.Value);
+                    if (option != null && option.IsCorrect)
+                    {
+                        correctCount++;
+                    }
+                }
 
-            return correctCount;
+                float scorePercentage = totalQuestions > 0 ? (float)correctCount / totalQuestions * 100 : 0;
+
+                var attempt = new TestAttempt
+                {
+                    TestId = testId,
+                    UserId = userId,
+                    StartedAt = DateTime.UtcNow.AddMinutes(-10),
+                    FinishedAt = DateTime.UtcNow,
+                    Score = scorePercentage,
+                };
+                await this.attemptRepository.AddAsync(attempt);
+
+                foreach (var answer in answers)
+                {
+                    var attemptAnswer = new TestAttemptAnswer
+                    {
+                        AttemptId = attempt.AttemptId,
+                        QuestionId = answer.Key,
+                        SelectedOptionId = answer.Value,
+                    };
+                    await this.attemptAnswerRepository.AddAsync(attemptAnswer);
+                }
+
+                this.logger.LogInformation("Test attempt submitted successfully. Score: {Score}", scorePercentage);
+                return correctCount;
+            }
+            catch (Exception ex)
+            {
+                this.logger.LogError(ex, "Error submitting test attempt for TestID {TestId}, UserID {UserId}", testId, userId);
+                throw;
+            }
         }
 
         public async Task<int> CreateNewTestAsync(CreateTestDto testDto, int userId)
         {
-            var newTest = new Test
+            this.logger.LogInformation("Creating new test '{Title}' by UserID {UserId}", testDto.Title, userId);
+            try
             {
-                Title = testDto.Title,
-                Description = testDto.Description,
-                TopicId = testDto.TopicId,
-                DifficultyLevel = testDto.DifficultyLevel,
-                CreatedAt = DateTime.UtcNow,
-                IsPublished = true,
-                IsUserCreated = true,
-                CreatedBy = userId,
-                TotalQuestionsCount = testDto.NewQuestions.Count
-            };
-            await _testRepository.AddAsync(newTest);
-
-            int position = 1;
-            foreach (var qDto in testDto.NewQuestions)
-            {
-                var newQ = new Question
+                var newTest = new Test
                 {
-                    Text = qDto.Text,
-                    QuestionType = "SingleChoice",
+                    Title = testDto.Title,
+                    Description = testDto.Description,
+                    TopicId = testDto.TopicId,
                     DifficultyLevel = testDto.DifficultyLevel,
                     CreatedAt = DateTime.UtcNow,
+                    IsPublished = true,
+                    IsUserCreated = true,
                     CreatedBy = userId,
-                    TopicId = testDto.TopicId
+                    TotalQuestionsCount = testDto.NewQuestions.Count,
                 };
-                await _questionRepository.AddAsync(newQ);
+                await this.testRepository.AddAsync(newTest);
 
-                await _testQuestionRepository.AddAsync(new TestQuestion { TestId = newTest.TestId, QuestionId = newQ.QuestionId, Position = position++ });
-
-                for (int i = 0; i < qDto.Options.Count; i++)
+                int position = 1;
+                foreach (var qDto in testDto.NewQuestions)
                 {
-                    await _optionRepository.AddAsync(new QuestionOption
+                    var newQ = new Question
                     {
-                        QuestionId = newQ.QuestionId,
-                        Text = qDto.Options[i].Text,
-                        IsCorrect = (i == qDto.CorrectOptionIndex)
-                    });
+                        Text = qDto.Text,
+                        QuestionType = "SingleChoice",
+                        DifficultyLevel = testDto.DifficultyLevel,
+                        CreatedAt = DateTime.UtcNow,
+                        CreatedBy = userId,
+                        TopicId = testDto.TopicId,
+                    };
+                    await this.questionRepository.AddAsync(newQ);
+
+                    await this.testQuestionRepository.AddAsync(new TestQuestion { TestId = newTest.TestId, QuestionId = newQ.QuestionId, Position = position++ });
+
+                    for (int i = 0; i < qDto.Options.Count; i++)
+                    {
+                        await this.optionRepository.AddAsync(new QuestionOption
+                        {
+                            QuestionId = newQ.QuestionId,
+                            Text = qDto.Options[i].Text,
+                            IsCorrect = i == qDto.CorrectOptionIndex,
+                        });
+                    }
                 }
+
+                this.logger.LogInformation("Test created successfully. ID: {TestId}", newTest.TestId);
+                return newTest.TestId;
             }
-            return newTest.TestId;
+            catch (Exception ex)
+            {
+                this.logger.LogError(ex, "Error creating new test by UserID {UserId}", userId);
+                throw;
+            }
         }
 
         public async Task<List<TestSessionDto>> GetGeneratedTestSessionAsync(int userId, List<string> levels, Dictionary<int, int> topicRequests)
         {
-            var allQuestions = new List<Question>();
-
-            foreach (var req in topicRequests)
+            this.logger.LogInformation("Generating test session for UserID {UserId}", userId);
+            try
             {
-                var questions = await _questionRepository.FindAsync(x =>
-                    x.TopicId == req.Key &&
-                    levels.Contains(x.DifficultyLevel) &&
-                    x.CreatedBy == null); // Only use app-created questions
+                var allQuestions = new List<Question>();
 
-                var taken = questions.OrderBy(x => Guid.NewGuid()).Take(req.Value).ToList();
-                allQuestions.AddRange(taken);
-            }
-
-            if (!allQuestions.Any()) return new List<TestSessionDto>();
-
-            var qIds = allQuestions.Select(q => q.QuestionId).ToList();
-            var allOptions = await _optionRepository.FindAsync(o => qIds.Contains(o.QuestionId));
-
-            var sessionDto = new TestSessionDto
-            {
-                TestId = 0,
-                Title = "Generated Test",
-                Description = "Custom generated test session.",
-                Questions = allQuestions.Select(q => new TestQuestionDto
+                foreach (var req in topicRequests)
                 {
-                    QuestionId = q.QuestionId,
-                    Text = q.Text,
-                    Options = allOptions.Where(o => o.QuestionId == q.QuestionId)
-                                        .Select(o => new TestOptionDto { OptionId = o.OptionId, Text = o.Text })
-                                        .ToList()
-                }).ToList()
-            };
+                    var questions = await this.questionRepository.FindAsync(x =>
+                        x.TopicId == req.Key &&
+                        levels.Contains(x.DifficultyLevel) &&
+                        x.CreatedBy == null);
 
-            return new List<TestSessionDto> { sessionDto };
+                    var taken = questions.OrderBy(x => Guid.NewGuid()).Take(req.Value).ToList();
+                    allQuestions.AddRange(taken);
+                }
+
+                if (!allQuestions.Any())
+                {
+                    this.logger.LogWarning("No questions found for generated test session.");
+                    return new List<TestSessionDto>();
+                }
+
+                var qIds = allQuestions.Select(q => q.QuestionId).ToList();
+                var allOptions = await this.optionRepository.FindAsync(o => qIds.Contains(o.QuestionId));
+
+                var sessionDto = new TestSessionDto
+                {
+                    TestId = 0,
+                    Title = "Generated Test",
+                    Description = "Custom generated test session.",
+                    Questions = allQuestions.Select(q => new TestQuestionDto
+                    {
+                        QuestionId = q.QuestionId,
+                        Text = q.Text,
+                        Options = allOptions.Where(o => o.QuestionId == q.QuestionId)
+                                            .Select(o => new TestOptionDto { OptionId = o.OptionId, Text = o.Text })
+                                            .ToList(),
+                    }).ToList(),
+                };
+
+                return new List<TestSessionDto> { sessionDto };
+            }
+            catch (Exception ex)
+            {
+                this.logger.LogError(ex, "Error generating test session for UserID {UserId}", userId);
+                throw;
+            }
         }
 
         public Task<IEnumerable<TestCardDto>> GetPublishedTestsForDashboardAsync()

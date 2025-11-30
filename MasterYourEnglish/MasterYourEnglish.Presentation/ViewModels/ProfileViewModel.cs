@@ -1,26 +1,35 @@
 ﻿namespace MasterYourEnglish.Presentation.ViewModels
 {
+    using System;
     using System.Threading.Tasks;
     using System.Windows.Input;
     using MasterYourEnglish.BLL.Interfaces;
     using MasterYourEnglish.Presentation.ViewModels.Commands;
+    using Microsoft.Extensions.Logging;
 
     public class ProfileViewModel : ViewModelBase
     {
         private readonly IUserService userService;
         private readonly ICurrentUserService currentUserService;
+        private readonly ILogger<ProfileViewModel> logger;
         private string fullName;
         private string firstName;
         private string lastName;
         private string email;
         private string username;
 
-        public ProfileViewModel(IUserService userService, ICurrentUserService currentUserService)
+        public ProfileViewModel(
+            IUserService userService,
+            ICurrentUserService currentUserService,
+            ILogger<ProfileViewModel> logger)
         {
             this.userService = userService;
             this.currentUserService = currentUserService;
+            this.logger = logger;
+
             this.LoadUserProfile();
-            this.SaveChangesCommand = new RelayCommand(async () => await this.OnSaveChanges());
+            this.SaveChangesCommand = new RelayCommand(async (p) => await this.OnSaveChanges());
+            this.logger.LogInformation("ProfileViewModel initialized.");
         }
 
         public string FullName
@@ -70,6 +79,7 @@
             {
                 this.FirstName = "Error";
                 this.LastName = "User not found";
+                this.logger.LogError("CurrentUserService returned null user in LoadUserProfile.");
                 return;
             }
 
@@ -77,6 +87,7 @@
             this.LastName = currentUser.LastName;
             this.Email = currentUser.Email;
             this.Username = currentUser.UserName;
+            this.logger.LogInformation("User profile loaded for user: {Username}", currentUser.UserName);
         }
 
         private void UpdateFullName()
@@ -86,16 +97,33 @@
 
         private async Task OnSaveChanges()
         {
-            int currentUserId = this.currentUserService.CurrentUser.UserId;
-            bool success = await this.userService.UpdateProfileAsync(currentUserId, this.FirstName, this.LastName);
-            if (success)
+            this.logger.LogInformation("Attempting to save profile changes for user: {Username}", this.Username);
+
+            try
             {
-                this.currentUserService.CurrentUser.FirstName = this.FirstName;
-                this.currentUserService.CurrentUser.LastName = this.LastName;
+                if (this.currentUserService.CurrentUser == null)
+                {
+                    this.logger.LogWarning("Cannot save changes: Current user object is null.");
+                    return;
+                }
+
+                int currentUserId = this.currentUserService.CurrentUser.UserId;
+                bool success = await this.userService.UpdateProfileAsync(currentUserId, this.FirstName, this.LastName);
+
+                if (success)
+                {
+                    this.currentUserService.CurrentUser.FirstName = this.FirstName;
+                    this.currentUserService.CurrentUser.LastName = this.LastName;
+                    this.logger.LogInformation("Profile updated successfully for user ID: {Id}", currentUserId);
+                }
+                else
+                {
+                    this.logger.LogWarning("Profile update failed (service returned false) for user ID: {Id}", currentUserId);
+                }
             }
-            else
+            catch (Exception ex)
             {
-                // Show an error
+                this.logger.LogError(ex, "Exception during profile save for user: {Username}", this.Username);
             }
         }
     }

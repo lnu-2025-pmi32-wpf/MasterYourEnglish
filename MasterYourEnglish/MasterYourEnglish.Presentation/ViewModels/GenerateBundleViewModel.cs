@@ -9,26 +9,41 @@
     using MasterYourEnglish.BLL.DTOs;
     using MasterYourEnglish.BLL.Interfaces;
     using MasterYourEnglish.Presentation.ViewModels.Commands;
+    using Microsoft.Extensions.DependencyInjection;
+    using Microsoft.Extensions.Logging;
 
     public class GenerateBundleViewModel : ViewModelBase, IPageViewModel
     {
         private readonly ITopicService topicService;
         private readonly IFlashcardBundleService bundleService;
         private readonly ICurrentUserService currentUserService;
+        private readonly ILogger<GenerateBundleViewModel> logger;
+        private readonly IServiceProvider serviceProvider;
         private string selectedMinLevel;
         private string selectedMaxLevel;
 
-        public GenerateBundleViewModel(ITopicService topicService, IFlashcardBundleService bundleService, ICurrentUserService currentUserService)
+        public GenerateBundleViewModel(
+            ITopicService topicService,
+            IFlashcardBundleService bundleService,
+            ICurrentUserService currentUserService,
+            ILogger<GenerateBundleViewModel> logger,
+            IServiceProvider serviceProvider)
         {
             this.topicService = topicService;
             this.bundleService = bundleService;
             this.currentUserService = currentUserService;
+            this.logger = logger;
+            this.serviceProvider = serviceProvider;
+
             this.Topics = new ObservableCollection<TopicSelectionViewModel>();
             this.Levels = new List<string> { "A1", "A2", "B1", "B2", "C1" };
             this.selectedMinLevel = this.Levels.First();
             this.selectedMaxLevel = this.Levels.Last();
+
             this.GenerateCommand = new RelayCommand(async p => await this.OnGenerate());
             this.CancelCommand = new RelayCommand(p => this.NavigationRequested?.Invoke("Flashcards"));
+
+            this.logger.LogInformation("GenerateBundleViewModel initialized.");
         }
 
         public event Action<List<FlashcardSessionDto>> SessionGenerated;
@@ -57,18 +72,38 @@
 
         public async Task LoadDataAsync()
         {
-            var topicDtos = await this.topicService.GetAllTopicsAsync();
-            this.Topics.Clear();
-            foreach (var dto in topicDtos)
+            this.logger.LogInformation("Loading available topics for bundle generation.");
+            try
             {
-                this.Topics.Add(new TopicSelectionViewModel(dto));
+                var topicDtos = await this.topicService.GetAllTopicsAsync();
+                this.Topics.Clear();
+                foreach (var dto in topicDtos)
+                {
+                    var topicLogger = this.serviceProvider.GetRequiredService<ILogger<TopicSelectionViewModel>>();
+                    this.Topics.Add(new TopicSelectionViewModel(dto, topicLogger));
+                }
+
+                this.logger.LogInformation("Successfully loaded {Count} topics.", topicDtos.Count);
+            }
+            catch (Exception ex)
+            {
+                this.logger.LogError(ex, "Failed to load topics for bundle generation.");
             }
         }
 
         private async Task OnGenerate()
         {
+            this.logger.LogInformation("Starting flashcard session generation based on user criteria.");
+
             int minIndex = this.Levels.IndexOf(this.selectedMinLevel);
             int maxIndex = this.Levels.IndexOf(this.selectedMaxLevel);
+
+            if (minIndex > maxIndex)
+            {
+                this.logger.LogWarning("Generation stopped: Minimum level ({Min}) is higher than maximum level ({Max}).", this.selectedMinLevel, this.selectedMaxLevel);
+                return;
+            }
+
             var selectedLevels = this.Levels.Skip(minIndex).Take(maxIndex - minIndex + 1).ToList();
             var topicRequests = this.Topics
                 .Where(t => t.CardCount > 0)
@@ -76,20 +111,32 @@
 
             if (topicRequests.Count == 0)
             {
-                // Show an error
+                this.logger.LogWarning("Generation failed: No topics selected or card count is zero.");
                 return;
             }
 
-            int userId = this.currentUserService.CurrentUser.UserId;
-            List<FlashcardSessionDto> generatedCards = await this.bundleService.GetGeneratedSessionAsync(userId, selectedLevels, topicRequests);
+            try
+            {
+                int userId = this.currentUserService.CurrentUser.UserId;
+                this.logger.LogDebug(
+                    "Generating session for levels: {Levels}, Topics: {TopicCount}",
+                    string.Join(",", selectedLevels), topicRequests.Count);
 
-            if (generatedCards.Any())
-            {
-                this.SessionGenerated?.Invoke(generatedCards);
+                List<FlashcardSessionDto> generatedCards = await this.bundleService.GetGeneratedSessionAsync(userId, selectedLevels, topicRequests);
+
+                if (generatedCards.Any())
+                {
+                    this.logger.LogInformation("Successfully generated {Count} cards.", generatedCards.Count);
+                    this.SessionGenerated?.Invoke(generatedCards);
+                }
+                else
+                {
+                    this.logger.LogWarning("Generated session is empty. No cards found based on criteria.");
+                }
             }
-            else
+            catch (Exception ex)
             {
-                // Show "No cards found" error
+                this.logger.LogError(ex, "Exception occurred during session generation.");
             }
         }
     }

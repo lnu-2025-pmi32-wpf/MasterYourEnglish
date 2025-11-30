@@ -3,7 +3,7 @@ namespace MasterYourEnglish.BLL.Models.DTOs
     public enum AttemptType
     {
         Test,
-        Flashcard
+        Flashcard,
     }
 
     public class AttemptHistoryDto

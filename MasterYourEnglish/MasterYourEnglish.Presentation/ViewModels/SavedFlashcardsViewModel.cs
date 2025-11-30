@@ -10,20 +10,27 @@
     using MasterYourEnglish.BLL.Interfaces;
     using MasterYourEnglish.BLL.Models.DTOs;
     using MasterYourEnglish.Presentation.ViewModels.Commands;
+    using Microsoft.Extensions.Logging;
 
     public class SavedFlashcardsViewModel : ViewModelBase, IPageViewModel
     {
         private readonly IFlashcardService flashcardService;
         private readonly ICurrentUserService currentUserService;
+        private readonly ILogger<SavedFlashcardsViewModel> logger;
         private bool isLoading = false;
         private SavedFlashcardDto selectedFlashcard;
         private string searchTerm;
         private string selectedSortOption;
 
-        public SavedFlashcardsViewModel(IFlashcardService flashcardService, ICurrentUserService currentUserService)
+        public SavedFlashcardsViewModel(
+            IFlashcardService flashcardService,
+            ICurrentUserService currentUserService,
+            ILogger<SavedFlashcardsViewModel> logger)
         {
             this.flashcardService = flashcardService;
             this.currentUserService = currentUserService;
+            this.logger = logger;
+
             this.SavedFlashcards = new ObservableCollection<SavedFlashcardDto>();
             this.SortOptions = new List<string> { "Name (A-Z)", "Name (Z-A)", "Level (Easy-Hard)", "Level (Hard-Easy)" };
             this.selectedSortOption = this.SortOptions.First();
@@ -31,6 +38,8 @@
             this.RemoveFromSavedCommand = new RelayCommand(p => this.OnRemoveFromSaved(), p => this.SelectedFlashcard != null);
             this.StartTestYourselfCommand = new RelayCommand(
                 p => this.NavigationRequested?.Invoke("TestSavedFlashcards"));
+
+            this.logger.Log(LogLevel.Information, "SavedFlashcardsViewModel initialized.");
         }
 
         public event Action<string> NavigationRequested;
@@ -48,8 +57,10 @@
             get => this.searchTerm;
             set
             {
-                this.SetProperty(ref this.searchTerm, value);
-                Task.Run(this.LoadDataAsync);
+                if (this.SetProperty(ref this.searchTerm, value))
+                {
+                    _ = this.LoadDataAsync();
+                }
             }
         }
 
@@ -60,8 +71,10 @@
             get => this.selectedSortOption;
             set
             {
-                this.SetProperty(ref this.selectedSortOption, value);
-                this.LoadDataAsync();
+                if (this.SetProperty(ref this.selectedSortOption, value))
+                {
+                    _ = this.LoadDataAsync();
+                }
             }
         }
 
@@ -75,30 +88,36 @@
         {
             if (this.isLoading)
             {
+                this.logger.Log(LogLevel.Debug, "LoadDataAsync skipped, already loading.");
                 return;
             }
 
             if (this.currentUserService.CurrentUser == null)
             {
+                this.logger.Log(LogLevel.Warning, "LoadDataAsync skipped, current user is null.");
                 return;
             }
 
             this.isLoading = true;
+            int userId = this.currentUserService.CurrentUser.UserId;
+            this.logger.Log(LogLevel.Information, "Starting to load saved flashcards for user ID: {Id}", userId);
+
             try
             {
-                int userId = this.currentUserService.CurrentUser.UserId;
                 string sortBy = this.selectedSortOption.Contains("Name") ? "Name" : "Level";
                 bool ascending = this.selectedSortOption.Contains("(A-Z)") || this.selectedSortOption.Contains("(Easy-Hard)");
-                var flashcards = await this.flashcardService.GetSavedFlashcardsAsync(userId, this.SearchTerm, sortBy, ascending);
+
+                var flashcards = await this.flashcardService.GetSavedFlashcardsAsync(userId, this.searchTerm, sortBy, ascending);
+
                 Application.Current.Dispatcher.Invoke(() =>
                 {
-                this.SavedFlashcards.Clear();
-                foreach (var card in flashcards)
-                {
-                    this.SavedFlashcards.Add(card);
-                }
+                    this.SavedFlashcards.Clear();
+                    foreach (var card in flashcards)
+                    {
+                        this.SavedFlashcards.Add(card);
+                    }
 
-                if (this.SavedFlashcards.Count > 0)
+                    if (this.SavedFlashcards.Count > 0)
                     {
                         this.SelectedFlashcard = this.SavedFlashcards[0];
                     }
@@ -108,6 +127,10 @@
                     }
                 });
             }
+            catch (Exception ex)
+            {
+                this.logger.Log(LogLevel.Error, ex, "Failed to load saved flashcards for user ID: {Id}", userId);
+            }
             finally
             {
                 this.isLoading = false;
@@ -116,6 +139,7 @@
 
         private void OnMarkAsLearned()
         {
+            this.logger.Log(LogLevel.Information, "Marking card as learned (removing from saved).");
             this.OnRemoveFromSaved();
         }
 
@@ -123,6 +147,7 @@
         {
             if (this.SelectedFlashcard == null)
             {
+                this.logger.Log(LogLevel.Warning, "Attempted to remove card, but SelectedFlashcard is null.");
                 return;
             }
 
@@ -130,10 +155,19 @@
             int cardId = this.SelectedFlashcard.FlashcardId;
             var cardToRemove = this.SelectedFlashcard;
 
-            await this.flashcardService.RemoveFromSavedAsync(userId, cardId);
+            this.logger.Log(LogLevel.Information, "Removing saved flashcard ID {CardId} for user {UserId}.", cardId, userId);
+            try
+            {
+                await this.flashcardService.RemoveFromSavedAsync(userId, cardId);
 
-            this.SavedFlashcards.Remove(cardToRemove);
-            this.SelectedFlashcard = this.SavedFlashcards.FirstOrDefault();
+                this.SavedFlashcards.Remove(cardToRemove);
+                this.SelectedFlashcard = this.SavedFlashcards.FirstOrDefault();
+                this.logger.Log(LogLevel.Information, "Flashcard ID {CardId} successfully removed from saved list.", cardId);
+            }
+            catch (Exception ex)
+            {
+                this.logger.Log(LogLevel.Error, ex, "Failed to remove flashcard ID {CardId} from saved list.", cardId);
+            }
         }
     }
 }

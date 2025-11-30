@@ -1,5 +1,8 @@
 ﻿using System;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
+using Serilog;
 
 namespace MasterYourEnglishApp
 {
@@ -7,29 +10,35 @@ namespace MasterYourEnglishApp
     {
         static async Task Main(string[] args)
         {
-
             var seeder = new DatabaseSeeder();
 
+            // Configure Serilog
+            Log.Logger = new LoggerConfiguration()
+                .WriteTo.Console()
+                .CreateLogger();
+
             Console.OutputEncoding = System.Text.Encoding.UTF8;
-            Console.WriteLine("--- Додаток для роботи з БД MasterYourEnglish ---");
+            Log.Information("--- Додаток для роботи з БД MasterYourEnglish ---");
 
             try
             {
+                Log.Information("Clearing tables...");
                 await seeder.ClearTables();
+                Log.Information("Populating database with test data...");
                 await seeder.PopulateDatabaseWithTestData();
-
+                Log.Information("Displaying all tables data...");
                 await seeder.DisplayAllTablesData();
             }
             catch (Exception ex)
             {
-                Console.ForegroundColor = ConsoleColor.Red;
-                Console.WriteLine($"\nСталася помилка: {ex.Message}");
-                Console.WriteLine("\nПеревірте, чи правильно вказано пароль у 'connectionString' та чи запущено сервер PostgreSQL.");
-                Console.ResetColor();
+                Log.Error(ex, "Сталася помилка: {Message}", ex.Message);
+                Log.Error("Перевірте, чи правильно вказано пароль у 'connectionString' та чи запущено сервер PostgreSQL.");
             }
-
-            Console.WriteLine("\nНатисніть будь-яку клавішу для виходу.");
-            Console.ReadKey();
+            finally
+            {
+                Log.Information("Натисніть будь-яку клавішу для виходу.");
+                Console.ReadKey();
+            }
         }
     }
 }

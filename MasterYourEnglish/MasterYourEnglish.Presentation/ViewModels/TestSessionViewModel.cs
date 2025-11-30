@@ -1,105 +1,164 @@
-﻿using MasterYourEnglish.BLL.DTOs;
-using MasterYourEnglish.BLL.Interfaces;
-using MasterYourEnglish.Presentation.ViewModels.Commands;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Windows.Input;
-
-namespace MasterYourEnglish.Presentation.ViewModels
+﻿namespace MasterYourEnglish.Presentation.ViewModels
 {
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+    using System.Windows.Input;
+    using MasterYourEnglish.BLL.DTOs;
+    using MasterYourEnglish.BLL.Interfaces;
+    using MasterYourEnglish.Presentation.ViewModels.Commands;
+    using Microsoft.Extensions.Logging;
+
     public class TestSessionViewModel : ViewModelBase
     {
-        private readonly ITestService _testService;
-        private readonly ICurrentUserService _currentUserService;
+        private readonly ITestService testService;
+        private readonly ICurrentUserService currentUserService;
+        private readonly ILogger<TestSessionViewModel> logger;
 
-        private TestSessionDto _currentTest;
-        private int _currentIndex;
-        private Dictionary<int, int> _userAnswers = new Dictionary<int, int>();
+        private TestSessionDto currentTest;
+        private int currentIndex;
+        private Dictionary<int, int> userAnswers = new Dictionary<int, int>();
+
+        // Backing fields
+        private string questionText;
+        private string progressText;
+        private List<TestOptionDto> currentOptions;
+        private TestOptionDto selectedOption;
+
+        public TestSessionViewModel(
+            ITestService testService,
+            ICurrentUserService currentUserService,
+            ILogger<TestSessionViewModel> logger)
+        {
+            this.testService = testService;
+            this.currentUserService = currentUserService;
+            this.logger = logger;
+
+            this.NextCommand = new RelayCommand(p => this.OnNext());
+            this.SubmitCommand = new RelayCommand(p => this.OnSubmit());
+
+            this.logger.LogInformation("TestSessionViewModel initialized.");
+        }
 
         public event Action<string> NavigationRequested;
 
-        private string _questionText;
-        public string QuestionText { get => _questionText; set => SetProperty(ref _questionText, value); }
+        public string QuestionText
+        {
+            get => this.questionText;
+            set => this.SetProperty(ref this.questionText, value);
+        }
 
-        private string _progressText;
-        public string ProgressText { get => _progressText; set => SetProperty(ref _progressText, value); }
+        public string ProgressText
+        {
+            get => this.progressText;
+            set => this.SetProperty(ref this.progressText, value);
+        }
 
-        private List<TestOptionDto> _currentOptions;
-        public List<TestOptionDto> CurrentOptions { get => _currentOptions; set => SetProperty(ref _currentOptions, value); }
+        public List<TestOptionDto> CurrentOptions
+        {
+            get => this.currentOptions;
+            set => this.SetProperty(ref this.currentOptions, value);
+        }
 
-        private TestOptionDto _selectedOption;
         public TestOptionDto SelectedOption
         {
-            get => _selectedOption;
+            get => this.selectedOption;
             set
             {
-                SetProperty(ref _selectedOption, value);
-                if (value != null) RecordAnswer(value.OptionId);
+                this.SetProperty(ref this.selectedOption, value);
+                if (value != null)
+                {
+                    this.RecordAnswer(value.OptionId);
+                }
             }
         }
 
         public ICommand NextCommand { get; }
-        public ICommand SubmitCommand { get; }
 
-        public TestSessionViewModel(ITestService testService, ICurrentUserService currentUserService)
-        {
-            _testService = testService;
-            _currentUserService = currentUserService;
-            NextCommand = new RelayCommand(p => OnNext());
-            SubmitCommand = new RelayCommand(p => OnSubmit());
-        }
+        public ICommand SubmitCommand { get; }
 
         public async void LoadTest(int testId)
         {
-            _currentTest = await _testService.GetTestSessionAsync(testId);
-            _currentIndex = 0;
-            _userAnswers.Clear();
-            LoadCurrentQuestion();
-        }
-
-        private void LoadCurrentQuestion()
-        {
-            if (_currentTest == null || _currentTest.Questions.Count == 0) return;
-
-            var q = _currentTest.Questions[_currentIndex];
-            QuestionText = q.Text;
-            CurrentOptions = q.Options;
-            SelectedOption = null;
-            ProgressText = $"Question {_currentIndex + 1} of {_currentTest.Questions.Count}";
-        }
-
-        private void RecordAnswer(int optionId)
-        {
-            var qId = _currentTest.Questions[_currentIndex].QuestionId;
-            _userAnswers[qId] = optionId;
-        }
-
-        private void OnNext()
-        {
-            if (_currentIndex < _currentTest.Questions.Count - 1)
+            this.logger.LogInformation("Loading test session for test ID: {Id}", testId);
+            try
             {
-                _currentIndex++;
-                LoadCurrentQuestion();
+                this.currentTest = await this.testService.GetTestSessionAsync(testId);
+                this.currentIndex = 0;
+                this.userAnswers.Clear();
+                this.LoadCurrentQuestion();
+                this.logger.LogInformation("Test session loaded successfully.");
             }
-        }
-
-        private async void OnSubmit()
-        {
-            int userId = _currentUserService.CurrentUser.UserId;
-            int score = await _testService.SubmitTestAttemptAsync(_currentTest.TestId, userId, _userAnswers);
-
-            NavigationRequested?.Invoke($"SessionResults:{score}:{_currentTest.Questions.Count}:Tests");
+            catch (Exception ex)
+            {
+                this.logger.LogError(ex, "Failed to load test session for ID: {Id}", testId);
+            }
         }
 
         public void LoadTest(TestSessionDto test)
         {
-            _currentTest = test;
+            this.currentTest = test;
+            this.logger.LogInformation("Loading test session from generated test. Question Count: {Count}", test.Questions.Count);
 
-            _currentIndex = 0;
-            _userAnswers.Clear();
+            this.currentIndex = 0;
+            this.userAnswers.Clear();
 
-            LoadCurrentQuestion();
+            this.LoadCurrentQuestion();
+        }
+
+        private void LoadCurrentQuestion()
+        {
+            if (this.currentTest == null || this.currentTest.Questions.Count == 0)
+            {
+                this.logger.LogWarning("Attempted to load question, but current test is null or empty.");
+                return;
+            }
+
+            var q = this.currentTest.Questions[this.currentIndex];
+            this.QuestionText = q.Text;
+            this.CurrentOptions = q.Options;
+            this.SelectedOption = null;
+            this.ProgressText = $"Question {this.currentIndex + 1} of {this.currentTest.Questions.Count}";
+        }
+
+        private void RecordAnswer(int optionId)
+        {
+            var qId = this.currentTest.Questions[this.currentIndex].QuestionId;
+            this.userAnswers[qId] = optionId;
+            this.logger.LogDebug("Recorded answer {OptionId} for question ID {QuestionId}", optionId, qId);
+        }
+
+        private void OnNext()
+        {
+            if (this.currentIndex < this.currentTest.Questions.Count - 1)
+            {
+                this.currentIndex++;
+                this.LoadCurrentQuestion();
+            }
+
+            this.logger.LogDebug("Navigating to next question. Index: {Index}", this.currentIndex);
+        }
+
+        private async void OnSubmit()
+        {
+            if (this.currentTest == null)
+            {
+                this.logger.LogWarning("Submit failed: Current test object is null.");
+                return;
+            }
+
+            this.logger.LogInformation("Submitting test attempt for test ID: {Id}", this.currentTest.TestId);
+            try
+            {
+                int userId = this.currentUserService.CurrentUser.UserId;
+                int score = await this.testService.SubmitTestAttemptAsync(this.currentTest.TestId, userId, this.userAnswers);
+
+                this.logger.LogInformation("Test attempt submitted successfully with score: {Score}", score);
+                this.NavigationRequested?.Invoke($"SessionResults:{score}:{this.currentTest.Questions.Count}:Tests");
+            }
+            catch (Exception ex)
+            {
+                this.logger.LogError(ex, "Failed to submit test attempt for test ID: {Id}", this.currentTest.TestId);
+            }
         }
     }
 }
