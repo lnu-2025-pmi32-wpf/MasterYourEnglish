@@ -1,173 +1,256 @@
-﻿using MasterYourEnglish.BLL.DTOs;
-using MasterYourEnglish.BLL.Interfaces;
-using MasterYourEnglish.BLL.Models.DTOs;
-using MasterYourEnglish.Presentation.ViewModels.Commands;
-using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Linq;
-using System.Threading.Tasks;
-using System.Windows.Input;
-
-namespace MasterYourEnglish.Presentation.ViewModels
+﻿namespace MasterYourEnglish.Presentation.ViewModels
 {
+    using System;
+    using System.Collections.Generic;
+    using System.Collections.ObjectModel;
+    using System.Linq;
+    using System.Threading.Tasks;
+    using System.Windows.Input;
+    using MasterYourEnglish.BLL.DTOs;
+    using MasterYourEnglish.BLL.Interfaces;
+    using MasterYourEnglish.BLL.Models.DTOs;
+    using MasterYourEnglish.Presentation.ViewModels.Commands;
+    using Microsoft.Extensions.Logging;
+
     public class CreateTestQuestionViewModel : ViewModelBase
     {
         public string Text { get; set; }
+
         public string CorrectAnswer { get; set; }
 
         public string Option1 { get; set; }
+
         public string Option2 { get; set; }
+
         public string Option3 { get; set; }
+
         public string Option4 { get; set; }
+
         public int CorrectOptionIndex { get; set; }
     }
 
     public class CreateTestViewModel : ViewModelBase, IPageViewModel
     {
-        private readonly ITopicService _topicService;
-        private readonly ITestService _testService;
-        private readonly ICurrentUserService _currentUserService;
+        private readonly ITopicService topicService;
+        private readonly ITestService testService;
+        private readonly ICurrentUserService currentUserService;
+        private readonly ILogger<CreateTestViewModel> logger;
+
         public event Action<string> NavigationRequested;
 
-        public string Title { get; set; } = "New Test";
-        public string Description { get; set; } = "";
+        private string title = "New Test";
 
-        private TopicDto _selectedTopic;
+        public string Title { get => this.title; set => this.SetProperty(ref this.title, value); }
+
+        private string description = string.Empty;
+
+        public string Description { get => this.description; set => this.SetProperty(ref this.description, value); }
+
+        private TopicDto selectedTopic;
+
         public TopicDto SelectedTopic
         {
-            get => _selectedTopic;
-            set => SetProperty(ref _selectedTopic, value);
+            get => this.selectedTopic;
+            set => this.SetProperty(ref this.selectedTopic, value);
         }
 
         public ObservableCollection<TopicDto> AvailableTopics { get; } = new ObservableCollection<TopicDto>();
-        public string Difficulty { get; set; } = "B2";
 
-        private string _newQuestionText;
-        public string NewQuestionText { get => _newQuestionText; set => SetProperty(ref _newQuestionText, value); }
+        private string difficulty = "B2";
 
-        private string _option1;
-        public string Option1 { get => _option1; set => SetProperty(ref _option1, value); }
+        public string Difficulty { get => this.difficulty; set => this.SetProperty(ref this.difficulty, value); }
 
-        private string _option2;
-        public string Option2 { get => _option2; set => SetProperty(ref _option2, value); }
+        private string newQuestionText;
 
-        private string _option3;
-        public string Option3 { get => _option3; set => SetProperty(ref _option3, value); }
+        public string NewQuestionText { get => this.newQuestionText; set => this.SetProperty(ref this.newQuestionText, value); }
 
-        private string _option4;
-        public string Option4 { get => _option4; set => SetProperty(ref _option4, value); }
+        private string option1;
 
-        private bool _isOption1Correct = true;
-        public bool IsOption1Correct { get => _isOption1Correct; set => SetProperty(ref _isOption1Correct, value); }
+        public string Option1 { get => this.option1; set => this.SetProperty(ref this.option1, value); }
 
-        private bool _isOption2Correct;
-        public bool IsOption2Correct { get => _isOption2Correct; set => SetProperty(ref _isOption2Correct, value); }
+        private string option2;
 
-        private bool _isOption3Correct;
-        public bool IsOption3Correct { get => _isOption3Correct; set => SetProperty(ref _isOption3Correct, value); }
+        public string Option2 { get => this.option2; set => this.SetProperty(ref this.option2, value); }
 
-        private bool _isOption4Correct;
-        public bool IsOption4Correct { get => _isOption4Correct; set => SetProperty(ref _isOption4Correct, value); }
+        private string option3;
+
+        public string Option3 { get => this.option3; set => this.SetProperty(ref this.option3, value); }
+
+        private string option4;
+
+        public string Option4 { get => this.option4; set => this.SetProperty(ref this.option4, value); }
+
+        private bool isOption1Correct = true;
+
+        public bool IsOption1Correct { get => this.isOption1Correct; set => this.SetProperty(ref this.isOption1Correct, value); }
+
+        private bool isOption2Correct;
+
+        public bool IsOption2Correct { get => this.isOption2Correct; set => this.SetProperty(ref this.isOption2Correct, value); }
+
+        private bool isOption3Correct;
+
+        public bool IsOption3Correct { get => this.isOption3Correct; set => this.SetProperty(ref this.isOption3Correct, value); }
+
+        private bool isOption4Correct;
+
+        public bool IsOption4Correct { get => this.isOption4Correct; set => this.SetProperty(ref this.isOption4Correct, value); }
 
         public ObservableCollection<CreateTestQuestionViewModel> QuestionsList { get; } = new ObservableCollection<CreateTestQuestionViewModel>();
 
         public ICommand AddQuestionCommand { get; }
+
         public ICommand SaveTestCommand { get; }
+
         public ICommand CancelCommand { get; }
 
-        public CreateTestViewModel(ITopicService topicService, ITestService testService, ICurrentUserService currentUserService)
+        public CreateTestViewModel(
+            ITopicService topicService,
+            ITestService testService,
+            ICurrentUserService currentUserService,
+            ILogger<CreateTestViewModel> logger)
         {
-            _topicService = topicService;
-            _testService = testService;
-            _currentUserService = currentUserService;
+            this.topicService = topicService;
+            this.testService = testService;
+            this.currentUserService = currentUserService;
+            this.logger = logger;
 
-            AddQuestionCommand = new RelayCommand(p => OnAddQuestion());
-            SaveTestCommand = new RelayCommand(p => OnSaveTest());
-            CancelCommand = new RelayCommand(p => NavigationRequested?.Invoke("Tests"));
+            this.AddQuestionCommand = new RelayCommand(p => this.OnAddQuestion());
+            this.SaveTestCommand = new RelayCommand(p => this.OnSaveTest());
+            this.CancelCommand = new RelayCommand(p => this.NavigationRequested?.Invoke("Tests"));
+            this.logger.LogInformation("Create Test view model initialized.");
         }
 
         public async Task LoadDataAsync()
         {
-            var topics = await _topicService.GetAllTopicsAsync();
-            AvailableTopics.Clear();
-            foreach (var t in topics) AvailableTopics.Add(t);
-            SelectedTopic = AvailableTopics.FirstOrDefault();
+            this.logger.LogInformation("Starting to load topics for test creation.");
+            try
+            {
+                var topics = await this.topicService.GetAllTopicsAsync();
+                this.AvailableTopics.Clear();
+                foreach (var t in topics)
+                {
+                    this.AvailableTopics.Add(t);
+                }
+
+                this.SelectedTopic = this.AvailableTopics.FirstOrDefault();
+                this.logger.LogInformation("Loaded {Count} topics successfully.", topics.Count);
+            }
+            catch (Exception ex)
+            {
+                this.logger.LogError(ex, "Failed to load topics for test creation.");
+            }
         }
 
         private void OnAddQuestion()
         {
             int correctIndex = 0;
-            string correctText = Option1;
+            string correctText = this.Option1;
 
-            if (IsOption2Correct) { correctIndex = 1; correctText = Option2; }
-            else if (IsOption3Correct) { correctIndex = 2; correctText = Option3; }
-            else if (IsOption4Correct) { correctIndex = 3; correctText = Option4; }
+            if (this.IsOption2Correct) { correctIndex = 1;
+                correctText = this.Option2; }
+            else if (this.IsOption3Correct) { correctIndex = 2;
+                correctText = this.Option3; }
+            else if (this.IsOption4Correct) { correctIndex = 3;
+                correctText = this.Option4; }
 
-            if (string.IsNullOrWhiteSpace(NewQuestionText) ||
-                string.IsNullOrWhiteSpace(Option1) ||
-                string.IsNullOrWhiteSpace(Option2))
+            if (string.IsNullOrWhiteSpace(this.NewQuestionText) ||
+                string.IsNullOrWhiteSpace(this.Option1) ||
+                string.IsNullOrWhiteSpace(this.Option2))
             {
+                this.logger.LogWarning("Cannot add question: Question text or required options (1/2) are missing.");
                 return;
             }
 
-            QuestionsList.Add(new CreateTestQuestionViewModel
+            this.QuestionsList.Add(new CreateTestQuestionViewModel
             {
-                Text = NewQuestionText,
+                Text = this.NewQuestionText,
                 CorrectAnswer = correctText,
 
                 Option1 = this.Option1,
                 Option2 = this.Option2,
                 Option3 = this.Option3,
                 Option4 = this.Option4,
-                CorrectOptionIndex = correctIndex
+                CorrectOptionIndex = correctIndex,
             });
 
-            NewQuestionText = "";
-            Option1 = ""; Option2 = ""; Option3 = ""; Option4 = "";
-            IsOption1Correct = true; IsOption2Correct = false; IsOption3Correct = false; IsOption4Correct = false;
+            this.logger.LogDebug("Question added: {Text}", this.NewQuestionText);
+
+            this.NewQuestionText = string.Empty;
+            this.Option1 = string.Empty;
+            this.Option2 = string.Empty;
+            this.Option3 = string.Empty;
+            this.Option4 = string.Empty;
+            this.IsOption1Correct = true;
+            this.IsOption2Correct = false;
+            this.IsOption3Correct = false;
+            this.IsOption4Correct = false;
         }
 
         private async void OnSaveTest()
         {
-            if (SelectedTopic == null || QuestionsList.Count == 0) return;
-
-            int userId = _currentUserService.CurrentUser.UserId;
-
-            var dto = new CreateTestDto
+            if (this.SelectedTopic == null || this.QuestionsList.Count == 0)
             {
-                Title = Title,
-                Description = Description,
-                TopicId = SelectedTopic.TopicId,
-                DifficultyLevel = Difficulty,
+                this.logger.LogWarning("Save failed: Selected topic is null or no questions are added.");
+                return;
+            }
 
-                NewQuestions = QuestionsList.Select(q => new CreateQuestionDto
+            this.logger.LogInformation("Attempting to save new test: {Title}", this.Title);
+
+            try
+            {
+                int userId = this.currentUserService.CurrentUser.UserId;
+
+                var dto = new CreateTestDto
                 {
-                    Text = q.Text,
-                    Options = new List<CreateOptionDto>
+                    Title = this.Title,
+                    Description = this.Description,
+                    TopicId = this.SelectedTopic.TopicId,
+                    DifficultyLevel = this.Difficulty,
+
+                    NewQuestions = this.QuestionsList.Select(q => new CreateQuestionDto
                     {
-                        new CreateOptionDto { Text = q.Option1 },
-                        new CreateOptionDto { Text = q.Option2 },
-                        new CreateOptionDto { Text = q.Option3 },
-                        new CreateOptionDto { Text = q.Option4 }
-                    },
-                    CorrectOptionIndex = q.CorrectOptionIndex
-                }).ToList()
-            };
+                        Text = q.Text,
+                        Options = new List<CreateOptionDto>
+                        {
+                            new CreateOptionDto { Text = q.Option1 },
+                            new CreateOptionDto { Text = q.Option2 },
+                            new CreateOptionDto { Text = q.Option3 },
+                            new CreateOptionDto { Text = q.Option4 },
+                        },
+                        CorrectOptionIndex = q.CorrectOptionIndex,
+                    }).ToList(),
+                };
 
-            int newId = await _testService.CreateNewTestAsync(dto, userId);
+                int newId = await this.testService.CreateNewTestAsync(dto, userId);
 
-            Title = "New Test";
-            Description = "";
-            Difficulty = "B2";
-            QuestionsList.Clear();
-            if (AvailableTopics.Count > 0) SelectedTopic = AvailableTopics[0];
+                this.logger.LogInformation("Test '{Title}' created successfully with ID: {Id}", this.Title, newId);
 
-            NewQuestionText = "";
-            Option1 = ""; Option2 = ""; Option3 = ""; Option4 = "";
-            IsOption1Correct = true; IsOption2Correct = false; IsOption3Correct = false; IsOption4Correct = false;
+                this.Title = "New Test";
+                this.Description = string.Empty;
+                this.Difficulty = "B2";
+                this.QuestionsList.Clear();
+                if (this.AvailableTopics.Count > 0)
+                {
+                    this.SelectedTopic = this.AvailableTopics.FirstOrDefault();
+                }
 
-            NavigationRequested?.Invoke("Tests");
+                this.NewQuestionText = string.Empty;
+                this.Option1 = string.Empty;
+                this.Option2 = string.Empty;
+                this.Option3 = string.Empty;
+                this.Option4 = string.Empty;
+                this.IsOption1Correct = true;
+                this.IsOption2Correct = false;
+                this.IsOption3Correct = false;
+                this.IsOption4Correct = false;
+
+                this.NavigationRequested?.Invoke("Tests");
+            }
+            catch (Exception ex)
+            {
+                this.logger.LogError(ex, "Failed to save test '{Title}'.", this.Title);
+            }
         }
     }
 }

@@ -9,12 +9,14 @@
     using MasterYourEnglish.BLL.Interfaces;
     using MasterYourEnglish.BLL.Models.DTOs;
     using MasterYourEnglish.Presentation.ViewModels.Commands;
+    using Microsoft.Extensions.Logging;
 
     public class CreateBundleViewModel : ViewModelBase, IPageViewModel
     {
         private readonly ITopicService topicService;
         private readonly IFlashcardBundleService bundleService;
         private readonly ICurrentUserService currentUserService;
+        private readonly ILogger<CreateBundleViewModel> logger;
 
         private string title = "My New Bundle";
         private string description = string.Empty;
@@ -26,11 +28,16 @@
         private string newTranscription;
         private string newPartOfSpeech;
 
-        public CreateBundleViewModel(ITopicService topicService, IFlashcardBundleService bundleService, ICurrentUserService currentUserService)
+        public CreateBundleViewModel(
+            ITopicService topicService,
+            IFlashcardBundleService bundleService,
+            ICurrentUserService currentUserService,
+            ILogger<CreateBundleViewModel> logger)
         {
             this.topicService = topicService;
             this.bundleService = bundleService;
             this.currentUserService = currentUserService;
+            this.logger = logger;
 
             this.NewFlashcards = new ObservableCollection<CreateFlashcardDto>();
             this.AvailableTopics = new ObservableCollection<TopicDto>();
@@ -39,6 +46,8 @@
             this.RemoveCardCommand = new RelayCommand(this.OnRemoveCard);
             this.SaveBundleCommand = new RelayCommand(async p => await this.OnSaveBundle(), p => this.CanSaveBundle());
             this.CancelCommand = new RelayCommand(p => this.NavigationRequested?.Invoke("Flashcards"));
+
+            this.logger.LogInformation("CreateBundleViewModel initialized.");
         }
 
         public event Action<string> NavigationRequested;
@@ -75,20 +84,35 @@
 
         public async Task LoadDataAsync()
         {
-            var topicDtos = await this.topicService.GetAllTopicsAsync();
-            this.AvailableTopics.Clear();
-            foreach (var dto in topicDtos)
+            this.logger.LogInformation("Loading available topics for bundle creation.");
+            try
             {
-                this.AvailableTopics.Add(dto);
-            }
+                var topicDtos = await this.topicService.GetAllTopicsAsync();
+                this.AvailableTopics.Clear();
+                foreach (var dto in topicDtos)
+                {
+                    this.AvailableTopics.Add(dto);
+                }
 
-            this.SelectedTopic = this.AvailableTopics.FirstOrDefault();
+                this.SelectedTopic = this.AvailableTopics.FirstOrDefault();
+                this.logger.LogInformation("Successfully loaded {Count} topics.", topicDtos.Count);
+            }
+            catch (Exception ex)
+            {
+                this.logger.LogError(ex, "Failed to load topics for bundle creation.");
+            }
         }
 
         private bool CanAddCard() => !string.IsNullOrWhiteSpace(this.NewWord) && !string.IsNullOrWhiteSpace(this.NewMeaning);
 
         private void OnAddCard()
         {
+            if (!this.CanAddCard())
+            {
+                this.logger.LogWarning("Cannot add card: Word or Meaning is missing.");
+                return;
+            }
+
             var newCard = new CreateFlashcardDto
             {
                 Word = this.NewWord,
@@ -100,11 +124,12 @@
             };
 
             this.NewFlashcards.Add(newCard);
+            this.logger.LogDebug("New card added: {Word}", newCard.Word);
 
+            // Скидання полів
             this.NewWord = string.Empty;
             this.NewMeaning = string.Empty;
             this.NewExample = string.Empty;
-
             this.NewTranscription = string.Empty;
             this.NewPartOfSpeech = string.Empty;
         }
@@ -114,6 +139,11 @@
             if (parameter is CreateFlashcardDto card)
             {
                 this.NewFlashcards.Remove(card);
+                this.logger.LogInformation("Card removed: {Word}", card.Word);
+            }
+            else
+            {
+                this.logger.LogWarning("Attempted to remove card with invalid parameter.");
             }
         }
 
@@ -121,33 +151,53 @@
 
         private async Task OnSaveBundle()
         {
-            var newBundleDto = new CreateBundleDto
+            if (!this.CanSaveBundle())
             {
-                Title = this.Title,
-                Description = this.Description ?? string.Empty,
-                TopicId = this.SelectedTopic.TopicId,
-                DifficultyLevel = this.Difficulty,
-                NewFlashcards = this.NewFlashcards.ToList(),
-            };
+                this.logger.LogWarning("Save failed: Bundle data is incomplete or flashcards list is empty.");
+                return;
+            }
 
-            int userId = this.currentUserService.CurrentUser.UserId;
+            this.logger.LogInformation("Attempting to save new bundle: {Title}", this.Title);
 
-            int newBundleId = await this.bundleService.CreateNewBundleAsync(newBundleDto, userId);
+            try
+            {
+                var newBundleDto = new CreateBundleDto
+                {
+                    Title = this.Title,
+                    Description = this.Description ?? string.Empty,
+                    TopicId = this.SelectedTopic.TopicId,
+                    DifficultyLevel = this.Difficulty,
+                    NewFlashcards = this.NewFlashcards.ToList(),
+                };
 
-            Title = "New Test";
-            Description = "";
-            Difficulty = "B2";
-            NewFlashcards.Clear();
-            if (AvailableTopics.Count > 0) SelectedTopic = AvailableTopics[0];
+                int userId = this.currentUserService.CurrentUser.UserId;
 
-            newWord = "";
-            newMeaning = "";
-            newExample = "";
-            newTranscription = "";
-            newPartOfSpeech = "";
+                int newBundleId = await this.bundleService.CreateNewBundleAsync(newBundleDto, userId);
 
+                this.logger.LogInformation("Bundle '{Title}' created successfully with ID: {Id}", this.Title, newBundleId);
 
-            this.NavigationRequested?.Invoke($"FlashcardSession:{newBundleId}");
+                // Скидання полів після успішного збереження
+                this.Title = "My New Bundle";
+                this.Description = string.Empty;
+                this.Difficulty = "B2";
+                this.NewFlashcards.Clear();
+                if (this.AvailableTopics.Count > 0)
+                {
+                    this.SelectedTopic = this.AvailableTopics.FirstOrDefault();
+                }
+
+                this.NewWord = string.Empty;
+                this.NewMeaning = string.Empty;
+                this.NewExample = string.Empty;
+                this.NewTranscription = string.Empty;
+                this.NewPartOfSpeech = string.Empty;
+
+                this.NavigationRequested?.Invoke($"FlashcardSession:{newBundleId}");
+            }
+            catch (Exception ex)
+            {
+                this.logger.LogError(ex, "Failed to save bundle '{Title}'.", this.Title);
+            }
         }
     }
 }

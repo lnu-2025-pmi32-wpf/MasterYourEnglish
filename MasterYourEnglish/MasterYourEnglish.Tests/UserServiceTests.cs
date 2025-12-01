@@ -32,7 +32,7 @@ namespace MasterYourEnglish.Tests
         [Fact]
         public async Task UpdateProfileAsync_UserExists_UpdatesAndReturnsTrue()
         {
-         
+
             var user = new User { UserName = "oldname", FirstName = "Old", LastName = "Name" };
             userRepoMock.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(user);
 

@@ -13,11 +13,29 @@ namespace MasterYourEnglish.Tests
     public class TestServiceTests
     {
         private readonly Mock<ITestRepository> testRepoMock = new();
+
+       
+        private readonly Mock<IRepository<Question>> questionRepoMock = new();
+        private readonly Mock<IRepository<QuestionOption>> questionOptionRepoMock = new();
+        private readonly Mock<IRepository<TestQuestion>> testQuestionRepoMock = new();
+        private readonly Mock<ITestAttemptRepository> testAttemptRepoMock = new();
+        private readonly Mock<IRepository<TestAttemptAnswer>> testAttemptAnswerRepoMock = new();
+        private readonly Mock<IRepository<TestAttemptAnswerSelectedOption>> testAttemptAnswerSelectedOptionRepoMock = new();
+
         private readonly TestService service;
 
         public TestServiceTests()
         {
-            service = new TestService(testRepoMock.Object);
+           
+            service = new TestService(
+                testRepoMock.Object, 
+                questionRepoMock.Object, 
+                questionOptionRepoMock.Object,
+                testQuestionRepoMock.Object,
+                testAttemptRepoMock.Object, 
+                testAttemptAnswerRepoMock.Object, 
+                testAttemptAnswerSelectedOptionRepoMock.Object 
+            );
         }
 
         [Fact]
