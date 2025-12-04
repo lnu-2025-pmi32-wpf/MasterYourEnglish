@@ -3,6 +3,7 @@ using MasterYourEnglish.BLL.Models.DTOs;
 using MasterYourEnglish.BLL.Services;
 using MasterYourEnglish.DAL.Entities;
 using MasterYourEnglish.DAL.Interfaces;
+using Microsoft.Extensions.Logging;
 using Moq;
 using System.Threading.Tasks;
 using Xunit;
@@ -13,13 +14,15 @@ namespace MasterYourEnglish.Tests
     {
         private readonly Mock<IUserRepository> userRepositoryMock;
         private readonly Mock<ICurrentUserService> currentUserServiceMock;
+        private readonly Mock<ILogger<AuthService>> loggerMock;
         private readonly AuthService authService;
 
         public AuthServiceTests()
         {
             userRepositoryMock = new Mock<IUserRepository>();
             currentUserServiceMock = new Mock<ICurrentUserService>();
-            authService = new AuthService(userRepositoryMock.Object, currentUserServiceMock.Object);
+            loggerMock = new Mock<ILogger<AuthService>>();
+            authService = new AuthService(userRepositoryMock.Object, currentUserServiceMock.Object, loggerMock.Object);
         }
 
         [Fact]

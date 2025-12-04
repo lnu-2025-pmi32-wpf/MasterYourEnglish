@@ -5,6 +5,7 @@ using MasterYourEnglish.BLL.Services;
 using MasterYourEnglish.BLL.Models.DTOs;
 using MasterYourEnglish.DAL.Entities;
 using MasterYourEnglish.DAL.Interfaces;
+using Microsoft.Extensions.Logging;
 using Moq;
 using Xunit;
 
@@ -21,6 +22,7 @@ namespace MasterYourEnglish.Tests
         private readonly Mock<ITestAttemptRepository> testAttemptRepoMock = new();
         private readonly Mock<IRepository<TestAttemptAnswer>> testAttemptAnswerRepoMock = new();
         private readonly Mock<IRepository<TestAttemptAnswerSelectedOption>> testAttemptAnswerSelectedOptionRepoMock = new();
+        private readonly Mock<ILogger<TestService>> loggerMock = new();
 
         private readonly TestService service;
 
@@ -34,7 +36,8 @@ namespace MasterYourEnglish.Tests
                 testQuestionRepoMock.Object,
                 testAttemptRepoMock.Object, 
                 testAttemptAnswerRepoMock.Object, 
-                testAttemptAnswerSelectedOptionRepoMock.Object 
+                testAttemptAnswerSelectedOptionRepoMock.Object,
+                loggerMock.Object
             );
         }
 

@@ -108,7 +108,7 @@
                                                 </DiscreteObjectKeyFrame.Value>
                                             </DiscreteObjectKeyFrame>
                                         </ObjectAnimationUsingKeyFrames>
-                                        
+
                                         <!-- Show and flip back card -->
                                         <ObjectAnimationUsingKeyFrames Storyboard.TargetName="CardBack"
                                                                      Storyboard.TargetProperty="Visibility"
@@ -144,7 +144,7 @@
                                                 </DiscreteObjectKeyFrame.Value>
                                             </DiscreteObjectKeyFrame>
                                         </ObjectAnimationUsingKeyFrames>
-                                        
+
                                         <!-- Show and flip front card -->
                                         <ObjectAnimationUsingKeyFrames Storyboard.TargetName="CardFront"
                                                                      Storyboard.TargetProperty="Visibility"

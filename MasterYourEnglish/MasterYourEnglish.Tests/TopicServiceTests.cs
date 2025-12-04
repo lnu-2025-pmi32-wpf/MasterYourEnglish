@@ -5,6 +5,7 @@ using MasterYourEnglish.BLL.Services;
 using MasterYourEnglish.BLL.Models.DTOs;
 using MasterYourEnglish.DAL.Entities;
 using MasterYourEnglish.DAL.Interfaces;
+using Microsoft.Extensions.Logging;
 using Moq;
 using Xunit;
 
@@ -13,11 +14,12 @@ namespace MasterYourEnglish.Tests
     public class TopicServiceTests
     {
         private readonly Mock<IRepository<Topic>> topicRepoMock = new();
+        private readonly Mock<ILogger<TopicService>> loggerMock = new();
         private readonly TopicService service;
 
         public TopicServiceTests()
         {
-            service = new TopicService(topicRepoMock.Object);
+            service = new TopicService(topicRepoMock.Object, loggerMock.Object);
         }
 
         [Fact]
