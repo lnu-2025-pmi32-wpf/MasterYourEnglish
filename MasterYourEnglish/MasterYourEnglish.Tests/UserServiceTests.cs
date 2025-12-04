@@ -2,6 +2,7 @@
 using MasterYourEnglish.BLL.Services;
 using MasterYourEnglish.DAL.Entities;
 using MasterYourEnglish.DAL.Interfaces;
+using Microsoft.Extensions.Logging;
 using Moq;
 using Xunit;
 
@@ -10,11 +11,12 @@ namespace MasterYourEnglish.Tests
     public class UserServiceTests
     {
         private readonly Mock<IUserRepository> userRepoMock = new();
+        private readonly Mock<ILogger<UserService>> loggerMock = new();
         private readonly UserService service;
 
         public UserServiceTests()
         {
-            service = new UserService(userRepoMock.Object);
+            service = new UserService(userRepoMock.Object, loggerMock.Object);
         }
 
         [Fact]

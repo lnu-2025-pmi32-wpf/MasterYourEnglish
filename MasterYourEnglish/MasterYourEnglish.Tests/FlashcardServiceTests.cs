@@ -5,6 +5,7 @@ using MasterYourEnglish.BLL.Services;
 using MasterYourEnglish.BLL.DTOs;
 using MasterYourEnglish.DAL.Entities;
 using MasterYourEnglish.DAL.Interfaces;
+using Microsoft.Extensions.Logging;
 using Moq;
 using Xunit;
 
@@ -14,11 +15,12 @@ namespace MasterYourEnglish.Tests
     {
         private readonly Mock<IFlashcardRepository> flashcardRepoMock = new();
         private readonly Mock<IRepository<SavedFlashcard>> savedRepoMock = new();
+        private readonly Mock<ILogger<FlashcardService>> loggerMock = new();
         private readonly FlashcardService service;
 
         public FlashcardServiceTests()
         {
-            service = new FlashcardService(flashcardRepoMock.Object, savedRepoMock.Object);
+            service = new FlashcardService(flashcardRepoMock.Object, savedRepoMock.Object, loggerMock.Object);
         }
 
         [Fact]
