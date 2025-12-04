@@ -60,7 +60,11 @@
             <Button.Template>
                 <ControlTemplate TargetType="Button">
                     <Grid>
-                        <Border x:Name="CardFront" Style="{StaticResource FlashcardStyle}">
+                        <Border x:Name="CardFront" Style="{StaticResource FlashcardStyle}"
+                                RenderTransformOrigin="0.5,0.5">
+                            <Border.RenderTransform>
+                                <ScaleTransform x:Name="FrontScaleTransform" ScaleX="1"/>
+                            </Border.RenderTransform>
                             <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
                                 <TextBlock Text="{Binding CurrentFlashcard.Word}" FontSize="48" FontWeight="Bold"
                                            TextAlignment="Center"/>
@@ -69,7 +73,11 @@
                             </StackPanel>
                         </Border>
 
-                        <Border x:Name="CardBack" Style="{StaticResource FlashcardStyle}" Visibility="Hidden">
+                        <Border x:Name="CardBack" Style="{StaticResource FlashcardStyle}" Visibility="Hidden"
+                                RenderTransformOrigin="0.5,0.5">
+                            <Border.RenderTransform>
+                                <ScaleTransform x:Name="BackScaleTransform" ScaleX="-1"/>
+                            </Border.RenderTransform>
                             <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Margin="20">
                                 <TextBlock Text="{Binding CurrentFlashcard.Definition}" FontSize="32" TextWrapping="Wrap"
                                            TextAlignment="Center"/>
@@ -83,8 +91,78 @@
 
                     <ControlTemplate.Triggers>
                         <DataTrigger Binding="{Binding IsFlipped}" Value="True">
-                            <Setter TargetName="CardFront" Property="Visibility" Value="Hidden"/>
-                            <Setter TargetName="CardBack" Property="Visibility" Value="Visible"/>
+                            <DataTrigger.EnterActions>
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <!-- Flip front card to hide it -->
+                                        <DoubleAnimation Storyboard.TargetName="FrontScaleTransform"
+                                                       Storyboard.TargetProperty="ScaleX"
+                                                       From="1" To="0"
+                                                       Duration="0:0:0.2"/>
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="CardFront"
+                                                                     Storyboard.TargetProperty="Visibility"
+                                                                     BeginTime="0:0:0.2">
+                                            <DiscreteObjectKeyFrame KeyTime="0:0:0">
+                                                <DiscreteObjectKeyFrame.Value>
+                                                    <Visibility>Hidden</Visibility>
+                                                </DiscreteObjectKeyFrame.Value>
+                                            </DiscreteObjectKeyFrame>
+                                        </ObjectAnimationUsingKeyFrames>
+
+                                        <!-- Show and flip back card -->
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="CardBack"
+                                                                     Storyboard.TargetProperty="Visibility"
+                                                                     BeginTime="0:0:0.2">
+                                            <DiscreteObjectKeyFrame KeyTime="0:0:0">
+                                                <DiscreteObjectKeyFrame.Value>
+                                                    <Visibility>Visible</Visibility>
+                                                </DiscreteObjectKeyFrame.Value>
+                                            </DiscreteObjectKeyFrame>
+                                        </ObjectAnimationUsingKeyFrames>
+                                        <DoubleAnimation Storyboard.TargetName="BackScaleTransform"
+                                                       Storyboard.TargetProperty="ScaleX"
+                                                       From="0" To="1"
+                                                       Duration="0:0:0.2"
+                                                       BeginTime="0:0:0.2"/>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </DataTrigger.EnterActions>
+                            <DataTrigger.ExitActions>
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <!-- Flip back card to hide it -->
+                                        <DoubleAnimation Storyboard.TargetName="BackScaleTransform"
+                                                       Storyboard.TargetProperty="ScaleX"
+                                                       From="1" To="0"
+                                                       Duration="0:0:0.2"/>
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="CardBack"
+                                                                     Storyboard.TargetProperty="Visibility"
+                                                                     BeginTime="0:0:0.2">
+                                            <DiscreteObjectKeyFrame KeyTime="0:0:0">
+                                                <DiscreteObjectKeyFrame.Value>
+                                                    <Visibility>Hidden</Visibility>
+                                                </DiscreteObjectKeyFrame.Value>
+                                            </DiscreteObjectKeyFrame>
+                                        </ObjectAnimationUsingKeyFrames>
+
+                                        <!-- Show and flip front card -->
+                                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="CardFront"
+                                                                     Storyboard.TargetProperty="Visibility"
+                                                                     BeginTime="0:0:0.2">
+                                            <DiscreteObjectKeyFrame KeyTime="0:0:0">
+                                                <DiscreteObjectKeyFrame.Value>
+                                                    <Visibility>Visible</Visibility>
+                                                </DiscreteObjectKeyFrame.Value>
+                                            </DiscreteObjectKeyFrame>
+                                        </ObjectAnimationUsingKeyFrames>
+                                        <DoubleAnimation Storyboard.TargetName="FrontScaleTransform"
+                                                       Storyboard.TargetProperty="ScaleX"
+                                                       From="0" To="1"
+                                                       Duration="0:0:0.2"
+                                                       BeginTime="0:0:0.2"/>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </DataTrigger.ExitActions>
                         </DataTrigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
