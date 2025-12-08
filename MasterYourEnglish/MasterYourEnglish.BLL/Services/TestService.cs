@@ -102,10 +102,12 @@
                     {
                         QuestionId = tq.Question.QuestionId,
                         Text = tq.Question.Text,
+                        QuestionType = tq.Question.QuestionType ?? "SingleChoice",
                         Options = tq.Question.QuestionOptions.Select(o => new TestOptionDto
                         {
                             OptionId = o.OptionId,
                             Text = o.Text,
+                            MatchingText = o.MatchingText ?? string.Empty,
                         }).ToList(),
                     }).ToList(),
                 };
@@ -127,8 +129,22 @@
 
                 foreach (var answer in answers)
                 {
+                    if (answer.Value == -1)
+                    {
+                        continue;
+                    }
+
                     var option = await this.optionRepository.GetByIdAsync(answer.Value);
-                    if (option != null && option.IsCorrect)
+                    if (option == null)
+                    {
+                        continue;
+                    }
+
+                    if (!string.IsNullOrEmpty(option.MatchingText))
+                    {
+                        correctCount++;
+                    }
+                    else if (option.IsCorrect)
                     {
                         correctCount++;
                     }
@@ -148,6 +164,12 @@
 
                 foreach (var answer in answers)
                 {
+                    // Skip invalid answers (-1 used for incorrect matching questions)
+                    if (answer.Value <= 0)
+                    {
+                        continue;
+                    }
+
                     var attemptAnswer = new TestAttemptAnswer
                     {
                         AttemptId = attempt.AttemptId,
@@ -192,7 +214,7 @@
                     var newQ = new Question
                     {
                         Text = qDto.Text,
-                        QuestionType = "SingleChoice",
+                        QuestionType = qDto.QuestionType ?? "SingleChoice",
                         DifficultyLevel = testDto.DifficultyLevel,
                         CreatedAt = DateTime.UtcNow,
                         CreatedBy = userId,
@@ -204,11 +226,16 @@
 
                     for (int i = 0; i < qDto.Options.Count; i++)
                     {
+                        bool isCorrect = qDto.Options[i].IsCorrect
+                            || (qDto.CorrectOptionIndices != null && qDto.CorrectOptionIndices.Contains(i))
+                            || i == qDto.CorrectOptionIndex;
+
                         await this.optionRepository.AddAsync(new QuestionOption
                         {
                             QuestionId = newQ.QuestionId,
                             Text = qDto.Options[i].Text,
-                            IsCorrect = i == qDto.CorrectOptionIndex,
+                            IsCorrect = isCorrect,
+                            MatchingText = qDto.Options[i].MatchingText ?? string.Empty,
                         });
                     }
                 }

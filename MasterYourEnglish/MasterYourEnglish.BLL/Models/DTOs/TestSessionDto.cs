@@ -19,6 +19,8 @@
 
         public string Text { get; set; } = string.Empty;
 
+        public string QuestionType { get; set; } = "SingleChoice";
+
         public List<TestOptionDto> Options { get; set; } = new List<TestOptionDto>();
     }
 
@@ -27,5 +29,7 @@
         public int OptionId { get; set; }
 
         public string Text { get; set; } = string.Empty;
+
+        public string MatchingText { get; set; } = string.Empty;
     }
 }

@@ -2,32 +2,227 @@
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              Background="{DynamicResource App.BackgroundBrush}">
-    <Grid Margin="30">
+    
+    <UserControl.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVis"/>
+        
+        <!-- Option Card Style -->
+        <Style x:Key="OptionCard" TargetType="Border">
+            <Setter Property="Background" Value="{DynamicResource Sidebar.BackgroundBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource Border.PrimaryBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="Padding" Value="16,14"/>
+            <Setter Property="Margin" Value="0,0,0,10"/>
+            <Setter Property="Cursor" Value="Hand"/>
+        </Style>
+        
+        <!-- Primary Button Style -->
+        <Style x:Key="PrimaryButton" TargetType="Button">
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Padding" Value="24,12"/>
+            <Setter Property="Background" Value="{DynamicResource Accent.PrimaryBrush}"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="ButtonBorder" 
+                                Background="{TemplateBinding Background}" 
+                                CornerRadius="6" 
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="ButtonBorder" Property="Opacity" Value="0.9"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        
+        <!-- Secondary Button Style -->
+        <Style x:Key="SecondaryButton" TargetType="Button" BasedOn="{StaticResource PrimaryButton}">
+            <Setter Property="Background" Value="#6B7280"/>
+        </Style>
+    </UserControl.Resources>
+    
+    <Grid Margin="40">
         <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <StackPanel>
-            <TextBlock Text="{Binding ProgressText}" FontSize="16" Foreground="Gray" HorizontalAlignment="Right"/>
-            <TextBlock Text="{Binding QuestionText}" FontSize="28" FontWeight="Bold" TextWrapping="Wrap" Margin="0,20,0,30"/>
-        </StackPanel>
+        <!-- Header with Progress -->
+        <Grid Grid.Row="0" Margin="0,0,0,20">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            
+            <StackPanel Grid.Column="0">
+                <TextBlock Text="Test Session" FontSize="24" FontWeight="Bold" 
+                           Foreground="{DynamicResource Text.PrimaryBrush}"/>
+            </StackPanel>
+            
+            <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                <!-- Question Type Badge -->
+                <Border CornerRadius="4" Padding="10,5" Margin="0,0,15,0" VerticalAlignment="Center">
+                    <Border.Style>
+                        <Style TargetType="Border">
+                            <Setter Property="Background" Value="#3B82F6"/>
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding IsMultipleChoice}" Value="True">
+                                    <Setter Property="Background" Value="#8B5CF6"/>
+                                </DataTrigger>
+                                <DataTrigger Binding="{Binding IsMatching}" Value="True">
+                                    <Setter Property="Background" Value="#F59E0B"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Border.Style>
+                    <TextBlock Text="{Binding DisplayQuestionType}" FontSize="12" 
+                               FontWeight="SemiBold" Foreground="White"/>
+                </Border>
+                
+                <TextBlock Text="{Binding ProgressText}" FontSize="16" FontWeight="Medium" 
+                           Foreground="Gray" VerticalAlignment="Center"/>
+            </StackPanel>
+        </Grid>
 
-        <!-- Options List -->
-        <ListBox Grid.Row="1" ItemsSource="{Binding CurrentOptions}" SelectedItem="{Binding SelectedOption}"
-                 BorderThickness="0" Background="Transparent">
-            <ListBox.ItemTemplate>
-                <DataTemplate>
-                    <RadioButton Content="{Binding Text}" IsChecked="{Binding IsSelected, RelativeSource={RelativeSource AncestorType=ListBoxItem}}"
-                                 FontSize="18" Margin="5"/>
-                </DataTemplate>
-            </ListBox.ItemTemplate>
-        </ListBox>
+        <!-- Question Card -->
+        <Border Grid.Row="1" Background="{DynamicResource Sidebar.BackgroundBrush}" 
+                BorderBrush="{DynamicResource Border.PrimaryBrush}" BorderThickness="1"
+                CornerRadius="10" Padding="25,20" Margin="0,0,0,25">
+            <StackPanel>
+                <TextBlock Text="{Binding QuestionText}" FontSize="22" FontWeight="SemiBold" 
+                           TextWrapping="Wrap" Foreground="{DynamicResource Text.PrimaryBrush}"
+                           LineHeight="30"/>
+                
+                <!-- Help text for question type -->
+                <TextBlock FontSize="14" Foreground="Gray" Margin="0,15,0,0">
+                    <TextBlock.Style>
+                        <Style TargetType="TextBlock">
+                            <Setter Property="Text" Value="👆 Select one correct answer"/>
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding IsMultipleChoice}" Value="True">
+                                    <Setter Property="Text" Value="☑️ Select all correct answers"/>
+                                </DataTrigger>
+                                <DataTrigger Binding="{Binding IsMatching}" Value="True">
+                                    <Setter Property="Text" Value="🔗 Match the items"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </TextBlock.Style>
+                </TextBlock>
+            </StackPanel>
+        </Border>
 
-        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right">
-            <Button Content="Next" Command="{Binding NextCommand}" Margin="0,0,10,0" Padding="20,10"/>
-            <Button Content="Submit Test" Command="{Binding SubmitCommand}" Padding="20,10" Background="{DynamicResource Accent.PrimaryBrush}" Foreground="White"/>
-        </StackPanel>
+        <!-- Options Area -->
+        <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto" Margin="0,0,0,20">
+            <Grid>
+                <!-- SingleChoice: RadioButton list via ListBox -->
+                <ListBox ItemsSource="{Binding CurrentOptions}" 
+                         SelectedItem="{Binding SelectedOption}"
+                         BorderThickness="0" Background="Transparent"
+                         Visibility="{Binding IsSingleChoice, Converter={StaticResource BoolToVis}}">
+                    <ListBox.ItemContainerStyle>
+                        <Style TargetType="ListBoxItem">
+                            <Setter Property="Template">
+                                <Setter.Value>
+                                    <ControlTemplate TargetType="ListBoxItem">
+                                        <Border x:Name="OptionBorder" Style="{StaticResource OptionCard}">
+                                            <StackPanel Orientation="Horizontal">
+                                                <RadioButton IsChecked="{Binding IsSelected, RelativeSource={RelativeSource AncestorType=ListBoxItem}}"
+                                                             VerticalAlignment="Center" Margin="0,0,15,0"/>
+                                                <TextBlock Text="{Binding Text}" FontSize="16" 
+                                                           Foreground="{DynamicResource Text.PrimaryBrush}"
+                                                           VerticalAlignment="Center"/>
+                                            </StackPanel>
+                                        </Border>
+                                        <ControlTemplate.Triggers>
+                                            <Trigger Property="IsSelected" Value="True">
+                                                <Setter TargetName="OptionBorder" Property="BorderBrush" Value="{DynamicResource Accent.PrimaryBrush}"/>
+                                                <Setter TargetName="OptionBorder" Property="BorderThickness" Value="2"/>
+                                            </Trigger>
+                                            <Trigger Property="IsMouseOver" Value="True">
+                                                <Setter TargetName="OptionBorder" Property="Background" Value="{DynamicResource Sidebar.HoverBrush}"/>
+                                            </Trigger>
+                                        </ControlTemplate.Triggers>
+                                    </ControlTemplate>
+                                </Setter.Value>
+                            </Setter>
+                        </Style>
+                    </ListBox.ItemContainerStyle>
+                </ListBox>
+
+                <!-- MultipleChoice: CheckBox list -->
+                <ItemsControl ItemsSource="{Binding SelectableOptions}"
+                              Visibility="{Binding IsMultipleChoice, Converter={StaticResource BoolToVis}}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Border Style="{StaticResource OptionCard}">
+                                <StackPanel Orientation="Horizontal">
+                                    <CheckBox IsChecked="{Binding IsSelected, Mode=TwoWay}"
+                                              VerticalAlignment="Center" Margin="0,0,15,0"/>
+                                    <TextBlock Text="{Binding Text}" FontSize="16" 
+                                               Foreground="{DynamicResource Text.PrimaryBrush}"
+                                               VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+
+                <!-- Matching: Dropdown pairing UI -->
+                <StackPanel Visibility="{Binding IsMatching, Converter={StaticResource BoolToVis}}">
+                    <ItemsControl ItemsSource="{Binding MatchingPairs}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border Style="{StaticResource OptionCard}">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="50"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+                                        <TextBlock Grid.Column="0" Text="{Binding LeftText}" FontSize="16" 
+                                                   Foreground="{DynamicResource Text.PrimaryBrush}"
+                                                   VerticalAlignment="Center" TextWrapping="Wrap"/>
+                                        <TextBlock Grid.Column="1" Text="↔" FontSize="18" FontWeight="Bold"
+                                                   Foreground="Gray" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                        <ComboBox Grid.Column="2" 
+                                                  ItemsSource="{Binding AvailableMatches}" 
+                                                  SelectedItem="{Binding SelectedMatch, Mode=TwoWay}"
+                                                  FontSize="14" Padding="10,8" VerticalAlignment="Center"/>
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </StackPanel>
+            </Grid>
+        </ScrollViewer>
+
+        <!-- Action Buttons -->
+        <Grid Grid.Row="3">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            
+            <StackPanel Grid.Column="1" Orientation="Horizontal">
+                <Button Content="Next Question" Style="{StaticResource SecondaryButton}" 
+                        Command="{Binding NextCommand}" Margin="0,0,12,0"/>
+                <Button Content="Submit Test" Style="{StaticResource PrimaryButton}" 
+                        Command="{Binding SubmitCommand}"/>
+            </StackPanel>
+        </Grid>
     </Grid>
 </UserControl>

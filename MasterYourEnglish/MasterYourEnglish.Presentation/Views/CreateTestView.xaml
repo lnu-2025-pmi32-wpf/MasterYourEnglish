@@ -10,36 +10,101 @@
              Background="{DynamicResource App.BackgroundBrush}">
 
     <UserControl.Resources>
-        <!-- Reusing standard styles for consistency -->
-        <Style TargetType="TextBlock" x:Key="LabelStyle">
-            <Setter Property="FontSize" Value="14"/>
-            <Setter Property="Margin" Value="0,0,0,5"/>
+        <BooleanToVisibilityConverter x:Key="BoolToVis"/>
+        <!-- Section Card Style -->
+        <Style x:Key="SectionCard" TargetType="Border">
+            <Setter Property="Background" Value="{DynamicResource Sidebar.BackgroundBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource Border.PrimaryBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="Padding" Value="20"/>
+        </Style>
+
+        <!-- Section Header Style -->
+        <Style x:Key="SectionHeader" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="18"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Foreground" Value="{DynamicResource Text.PrimaryBrush}"/>
+            <Setter Property="Margin" Value="0,0,0,15"/>
+        </Style>
+
+        <!-- Form Label Style -->
+        <Style x:Key="FormLabel" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="FontWeight" Value="Medium"/>
+            <Setter Property="Margin" Value="0,0,0,6"/>
             <Setter Property="Foreground" Value="{DynamicResource Text.PrimaryBrush}"/>
         </Style>
-        <Style TargetType="TextBox">
-            <Setter Property="FontSize" Value="16"/>
-            <Setter Property="Padding" Value="8"/>
-            <Setter Property="Background" Value="{DynamicResource Sidebar.BackgroundBrush}"/>
+
+        <!-- Form Input Style -->
+        <Style x:Key="FormInput" TargetType="TextBox">
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="Padding" Value="12,10"/>
+            <Setter Property="Background" Value="{DynamicResource App.BackgroundBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource Border.PrimaryBrush}"/>
             <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="Margin" Value="0,0,0,15"/>
+            <Setter Property="Margin" Value="0,0,0,12"/>
+            <Setter Property="Foreground" Value="{DynamicResource Text.PrimaryBrush}"/>
         </Style>
-        <Style TargetType="ComboBox">
-            <Setter Property="FontSize" Value="16"/>
-            <Setter Property="Padding" Value="8"/>
-            <Setter Property="Background" Value="{DynamicResource Sidebar.BackgroundBrush}"/>
+
+        <!-- Form ComboBox Style -->
+        <Style x:Key="FormComboBox" TargetType="ComboBox">
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="Padding" Value="12,10"/>
+            <Setter Property="Background" Value="{DynamicResource App.BackgroundBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource Border.PrimaryBrush}"/>
             <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="Margin" Value="0,0,0,15"/>
+            <Setter Property="Margin" Value="0,0,0,12"/>
         </Style>
-        <Style TargetType="Button" x:Key="PrimaryButton">
-            <Setter Property="FontSize" Value="18"/>
-            <Setter Property="Padding" Value="10"/>
+
+        <!-- Question Type Badge Style -->
+        <Style x:Key="TypeBadge" TargetType="Border">
+            <Setter Property="CornerRadius" Value="4"/>
+            <Setter Property="Padding" Value="8,4"/>
+            <Setter Property="Margin" Value="0"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+        </Style>
+
+        <!-- Primary Button Style -->
+        <Style x:Key="PrimaryButton" TargetType="Button">
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Padding" Value="20,12"/>
             <Setter Property="Background" Value="{DynamicResource Accent.PrimaryBrush}"/>
-            <Setter Property="Foreground" Value="{DynamicResource Text.OnAccentBrush}"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="ButtonBorder" 
+                                Background="{TemplateBinding Background}" 
+                                CornerRadius="6" 
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="ButtonBorder" Property="Opacity" Value="0.9"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Secondary Button Style -->
+        <Style x:Key="SecondaryButton" TargetType="Button" BasedOn="{StaticResource PrimaryButton}">
+            <Setter Property="Background" Value="#6B7280"/>
+        </Style>
+
+        <!-- Option Input Style -->
+        <Style x:Key="OptionCheckBox" TargetType="CheckBox">
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="Margin" Value="0,0,12,0"/>
             <Setter Property="Cursor" Value="Hand"/>
         </Style>
-        <Style TargetType="Button" x:Key="SecondaryButton" BasedOn="{StaticResource PrimaryButton}">
-            <Setter Property="Background" Value="Gray"/>
-        </Style>
+
     </UserControl.Resources>
 
     <Grid Margin="30">
@@ -48,120 +113,260 @@
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
-        <TextBlock Grid.Row="0" Text="Create New Test"
-                   FontSize="28" FontWeight="SemiBold"
-                   Foreground="{DynamicResource Text.PrimaryBrush}"
-                   Margin="0,0,0,20"/>
+        <!-- Page Header -->
+        <StackPanel Grid.Row="0" Margin="0,0,0,25">
+            <TextBlock Text="Create New Test"
+                       FontSize="28" FontWeight="Bold"
+                       Foreground="{DynamicResource Text.PrimaryBrush}"/>
+            <TextBlock Text="Build a custom test with your own questions"
+                       FontSize="14" Foreground="Gray" Margin="0,5,0,0"/>
+        </StackPanel>
 
         <Grid Grid.Row="1">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="1*"/>
+                <ColumnDefinition Width="1.2*"/>
                 <ColumnDefinition Width="1*"/>
             </Grid.ColumnDefinitions>
 
-            <!-- Left Column: Test Info & New Question Form -->
-            <ScrollViewer Grid.Column="0" Margin="0,0,20,0" VerticalScrollBarVisibility="Auto">
+            <!-- Left Column: Test Info & Question Form -->
+            <ScrollViewer Grid.Column="0" Margin="0,0,15,0" VerticalScrollBarVisibility="Auto">
                 <StackPanel>
-                    <TextBlock Text="Test Title" Style="{StaticResource LabelStyle}"/>
-                    <TextBox Text="{Binding Title}"/>
+                    
+                    <!-- Test Details Section -->
+                    <Border Style="{StaticResource SectionCard}" Margin="0,0,0,15">
+                        <StackPanel>
+                            <TextBlock Text="📝 Test Details" Style="{StaticResource SectionHeader}"/>
+                            
+                            <TextBlock Text="Title" Style="{StaticResource FormLabel}"/>
+                            <TextBox Text="{Binding Title}" Style="{StaticResource FormInput}"/>
 
-                    <TextBlock Text="Description" Style="{StaticResource LabelStyle}"/>
-                    <TextBox Text="{Binding Description}" TextWrapping="Wrap" AcceptsReturn="True" Height="60"/>
+                            <TextBlock Text="Description (optional)" Style="{StaticResource FormLabel}"/>
+                            <TextBox Text="{Binding Description}" Style="{StaticResource FormInput}" 
+                                     TextWrapping="Wrap" AcceptsReturn="True" Height="70"/>
 
-                    <TextBlock Text="Topic" Style="{StaticResource LabelStyle}"/>
-                    <ComboBox ItemsSource="{Binding AvailableTopics}"
-                              SelectedItem="{Binding SelectedTopic}"
-                              DisplayMemberPath="Name"/>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
 
-                    <TextBlock Text="Difficulty Level" Style="{StaticResource LabelStyle}"/>
-                    <TextBox Text="{Binding Difficulty}"/>
+                                <StackPanel Grid.Column="0" Margin="0,0,8,0">
+                                    <TextBlock Text="Topic" Style="{StaticResource FormLabel}"/>
+                                    <ComboBox ItemsSource="{Binding AvailableTopics}"
+                                              SelectedItem="{Binding SelectedTopic}"
+                                              DisplayMemberPath="Name"
+                                              Style="{StaticResource FormComboBox}"/>
+                                </StackPanel>
 
-                    <Border BorderThickness="0,1.5,0,0" Margin="0,20,0,20"/>
+                                <StackPanel Grid.Column="1" Margin="8,0,0,0">
+                                    <TextBlock Text="Difficulty" Style="{StaticResource FormLabel}"/>
+                                    <ComboBox ItemsSource="{Binding AvailableDifficultyLevels}"
+                                              SelectedItem="{Binding Difficulty}"
+                                              Style="{StaticResource FormComboBox}"/>
+                                </StackPanel>
+                            </Grid>
+                        </StackPanel>
+                    </Border>
 
-                    <TextBlock Text="Add New Question" FontSize="20" FontWeight="SemiBold" Margin="0,0,0,10"/>
+                    <!-- Add Question Section -->
+                    <Border Style="{StaticResource SectionCard}">
+                        <StackPanel>
+                            <TextBlock Text="➕ Add Question" Style="{StaticResource SectionHeader}"/>
 
-                    <TextBlock Text="Question Text" Style="{StaticResource LabelStyle}"/>
-                    <TextBox Text="{Binding NewQuestionText}" TextWrapping="Wrap" Height="60"/>
+                            <TextBlock Text="Question Type" Style="{StaticResource FormLabel}"/>
+                            <ComboBox ItemsSource="{Binding AvailableQuestionTypes}"
+                                      SelectedItem="{Binding SelectedQuestionType}"
+                                      Style="{StaticResource FormComboBox}"/>
 
-                    <!-- Options Inputs -->
-                    <TextBlock Text="Option 1 (Correct Answer?)" Style="{StaticResource LabelStyle}"/>
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto"/>
-                            <ColumnDefinition Width="*"/>
-                        </Grid.ColumnDefinitions>
-                        <RadioButton GroupName="CorrectOption" IsChecked="{Binding IsOption1Correct}" VerticalAlignment="Center" Margin="0,0,10,15"/>
-                        <TextBox Grid.Column="1" Text="{Binding Option1}"/>
-                    </Grid>
+                            <TextBlock Text="Question Text" Style="{StaticResource FormLabel}"/>
+                            <TextBox Text="{Binding NewQuestionText}" Style="{StaticResource FormInput}"
+                                     TextWrapping="Wrap" AcceptsReturn="True" Height="70"/>
 
-                    <TextBlock Text="Option 2" Style="{StaticResource LabelStyle}"/>
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto"/>
-                            <ColumnDefinition Width="*"/>
-                        </Grid.ColumnDefinitions>
-                        <RadioButton GroupName="CorrectOption" IsChecked="{Binding IsOption2Correct}" VerticalAlignment="Center" Margin="0,0,10,15"/>
-                        <TextBox Grid.Column="1" Text="{Binding Option2}"/>
-                    </Grid>
+                            <!-- Options Grid - Show different UI based on question type -->
+                            <TextBlock Margin="0,5,0,10">
+                                <TextBlock.Style>
+                                    <Style TargetType="TextBlock" BasedOn="{StaticResource FormLabel}">
+                                        <Setter Property="Text" Value="Answer Options"/>
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding IsMatching}" Value="True">
+                                                <Setter Property="Text" Value="Matching Pairs (Left ↔ Right)"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </TextBlock.Style>
+                            </TextBlock>
+                            <TextBlock FontSize="12" Foreground="Gray" Margin="0,0,0,12">
+                                <TextBlock.Style>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="Text" Value="Check the box for correct answer(s)"/>
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding IsMatching}" Value="True">
+                                                <Setter Property="Text" Value="Enter pairs: left side matches to right side"/>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </TextBlock.Style>
+                            </TextBlock>
 
-                    <TextBlock Text="Option 3" Style="{StaticResource LabelStyle}"/>
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto"/>
-                            <ColumnDefinition Width="*"/>
-                        </Grid.ColumnDefinitions>
-                        <RadioButton GroupName="CorrectOption" IsChecked="{Binding IsOption3Correct}" VerticalAlignment="Center" Margin="0,0,10,15"/>
-                        <TextBox Grid.Column="1" Text="{Binding Option3}"/>
-                    </Grid>
+                            <!-- Pair 1 -->
+                            <Grid Margin="0,0,0,8">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="30"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="40"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <CheckBox IsChecked="{Binding IsOption1Correct}" Style="{StaticResource OptionCheckBox}"
+                                          Visibility="{Binding IsNotMatching, Converter={StaticResource BoolToVis}}"/>
+                                <TextBlock Grid.Column="0" Text="1." VerticalAlignment="Center" FontWeight="Bold"
+                                           Visibility="{Binding IsMatching, Converter={StaticResource BoolToVis}}"/>
+                                <TextBox Grid.Column="1" Text="{Binding Option1}" Style="{StaticResource FormInput}" Margin="0"/>
+                                <TextBlock Grid.Column="2" Text="↔" VerticalAlignment="Center" HorizontalAlignment="Center" FontSize="16"
+                                           Visibility="{Binding IsMatching, Converter={StaticResource BoolToVis}}"/>
+                                <TextBox Grid.Column="3" Text="{Binding Match1}" Style="{StaticResource FormInput}" Margin="0"
+                                         Visibility="{Binding IsMatching, Converter={StaticResource BoolToVis}}"/>
+                            </Grid>
 
-                    <TextBlock Text="Option 4" Style="{StaticResource LabelStyle}"/>
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto"/>
-                            <ColumnDefinition Width="*"/>
-                        </Grid.ColumnDefinitions>
-                        <RadioButton GroupName="CorrectOption" IsChecked="{Binding IsOption4Correct}" VerticalAlignment="Center" Margin="0,0,10,15"/>
-                        <TextBox Grid.Column="1" Text="{Binding Option4}"/>
-                    </Grid>
+                            <!-- Pair 2 -->
+                            <Grid Margin="0,0,0,8">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="30"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="40"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <CheckBox IsChecked="{Binding IsOption2Correct}" Style="{StaticResource OptionCheckBox}"
+                                          Visibility="{Binding IsNotMatching, Converter={StaticResource BoolToVis}}"/>
+                                <TextBlock Grid.Column="0" Text="2." VerticalAlignment="Center" FontWeight="Bold"
+                                           Visibility="{Binding IsMatching, Converter={StaticResource BoolToVis}}"/>
+                                <TextBox Grid.Column="1" Text="{Binding Option2}" Style="{StaticResource FormInput}" Margin="0"/>
+                                <TextBlock Grid.Column="2" Text="↔" VerticalAlignment="Center" HorizontalAlignment="Center" FontSize="16"
+                                           Visibility="{Binding IsMatching, Converter={StaticResource BoolToVis}}"/>
+                                <TextBox Grid.Column="3" Text="{Binding Match2}" Style="{StaticResource FormInput}" Margin="0"
+                                         Visibility="{Binding IsMatching, Converter={StaticResource BoolToVis}}"/>
+                            </Grid>
 
-                    <Button Content="Add Question" Style="{StaticResource PrimaryButton}"
-                            Command="{Binding AddQuestionCommand}"
-                            HorizontalAlignment="Left" MinWidth="150" Margin="0,10,0,0"/>
+                            <!-- Pair 3 -->
+                            <Grid Margin="0,0,0,8">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="30"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="40"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <CheckBox IsChecked="{Binding IsOption3Correct}" Style="{StaticResource OptionCheckBox}"
+                                          Visibility="{Binding IsNotMatching, Converter={StaticResource BoolToVis}}"/>
+                                <TextBlock Grid.Column="0" Text="3." VerticalAlignment="Center" FontWeight="Bold"
+                                           Visibility="{Binding IsMatching, Converter={StaticResource BoolToVis}}"/>
+                                <TextBox Grid.Column="1" Text="{Binding Option3}" Style="{StaticResource FormInput}" Margin="0"/>
+                                <TextBlock Grid.Column="2" Text="↔" VerticalAlignment="Center" HorizontalAlignment="Center" FontSize="16"
+                                           Visibility="{Binding IsMatching, Converter={StaticResource BoolToVis}}"/>
+                                <TextBox Grid.Column="3" Text="{Binding Match3}" Style="{StaticResource FormInput}" Margin="0"
+                                         Visibility="{Binding IsMatching, Converter={StaticResource BoolToVis}}"/>
+                            </Grid>
+
+                            <!-- Pair 4 -->
+                            <Grid Margin="0,0,0,15">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="30"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="40"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <CheckBox IsChecked="{Binding IsOption4Correct}" Style="{StaticResource OptionCheckBox}"
+                                          Visibility="{Binding IsNotMatching, Converter={StaticResource BoolToVis}}"/>
+                                <TextBlock Grid.Column="0" Text="4." VerticalAlignment="Center" FontWeight="Bold"
+                                           Visibility="{Binding IsMatching, Converter={StaticResource BoolToVis}}"/>
+                                <TextBox Grid.Column="1" Text="{Binding Option4}" Style="{StaticResource FormInput}" Margin="0"/>
+                                <TextBlock Grid.Column="2" Text="↔" VerticalAlignment="Center" HorizontalAlignment="Center" FontSize="16"
+                                           Visibility="{Binding IsMatching, Converter={StaticResource BoolToVis}}"/>
+                                <TextBox Grid.Column="3" Text="{Binding Match4}" Style="{StaticResource FormInput}" Margin="0"
+                                         Visibility="{Binding IsMatching, Converter={StaticResource BoolToVis}}"/>
+                            </Grid>
+
+                            <Button Content="Add Question" 
+                                    Style="{StaticResource PrimaryButton}"
+                                    Command="{Binding AddQuestionCommand}"
+                                    HorizontalAlignment="Stretch"/>
+                        </StackPanel>
+                    </Border>
                 </StackPanel>
             </ScrollViewer>
 
-            <!-- Right Column: Question List & Save -->
-            <Grid Grid.Column="1" Margin="20,0,0,0">
+            <!-- Right Column: Questions List -->
+            <Grid Grid.Column="1" Margin="15,0,0,0">
                 <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
                     <RowDefinition Height="*"/>
                     <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
 
-                <TextBlock Text="{Binding QuestionsList.Count, StringFormat='Questions: {0}'}" 
-                           Style="{StaticResource LabelStyle}"/>
+                <!-- Questions Header -->
+                <Border Grid.Row="0" Background="{DynamicResource Sidebar.BackgroundBrush}" 
+                        CornerRadius="8,8,0,0" Padding="15,12" 
+                        BorderBrush="{DynamicResource Border.PrimaryBrush}" BorderThickness="1,1,1,0">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="📋 Questions" FontSize="16" FontWeight="SemiBold" 
+                                   Foreground="{DynamicResource Text.PrimaryBrush}"/>
+                        <Border Background="{DynamicResource Accent.PrimaryBrush}" CornerRadius="10" 
+                                Padding="8,2" Margin="10,0,0,0" VerticalAlignment="Center">
+                            <TextBlock Text="{Binding QuestionsList.Count}" FontSize="12" 
+                                       FontWeight="Bold" Foreground="White"/>
+                        </Border>
+                    </StackPanel>
+                </Border>
 
-                <ScrollViewer Grid.Row="0" Margin="0,30,0,0" VerticalScrollBarVisibility="Auto">
-                    <ItemsControl ItemsSource="{Binding QuestionsList}">
-                        <ItemsControl.ItemTemplate>
-                            <DataTemplate>
-                                <Border Background="{DynamicResource Sidebar.BackgroundBrush}" 
-                                        BorderThickness="1" CornerRadius="3" Padding="10" Margin="0,0,0,5">
-                                    <StackPanel>
-                                        <TextBlock Text="{Binding Text}" FontSize="16" FontWeight="Bold" TextWrapping="Wrap"/>
-                                        <TextBlock Text="{Binding CorrectAnswer, StringFormat='Answer: {0}'}" 
-                                                   FontSize="14" Foreground="Green" Margin="0,5,0,0"/>
-                                    </StackPanel>
-                                </Border>
-                            </DataTemplate>
-                        </ItemsControl.ItemTemplate>
-                    </ItemsControl>
-                </ScrollViewer>
+                <!-- Questions List -->
+                <Border Grid.Row="1" Background="{DynamicResource Sidebar.BackgroundBrush}" 
+                        BorderBrush="{DynamicResource Border.PrimaryBrush}" BorderThickness="1,0,1,1"
+                        CornerRadius="0,0,8,8">
+                    <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="10">
+                        <ItemsControl ItemsSource="{Binding QuestionsList}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Border Background="{DynamicResource App.BackgroundBrush}" 
+                                            BorderBrush="{DynamicResource Border.PrimaryBrush}"
+                                            BorderThickness="1" CornerRadius="6" Padding="12" Margin="0,0,0,8">
+                                        <StackPanel>
+                                            <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+                                                <!-- Question Type Badge -->
+                                                <Border CornerRadius="4" Padding="6,3" VerticalAlignment="Center">
+                                                    <Border.Style>
+                                                        <Style TargetType="Border">
+                                                            <Setter Property="Background" Value="#3B82F6"/>
+                                                            <Style.Triggers>
+                                                                <DataTrigger Binding="{Binding QuestionType}" Value="MultipleChoice">
+                                                                    <Setter Property="Background" Value="#8B5CF6"/>
+                                                                </DataTrigger>
+                                                                <DataTrigger Binding="{Binding QuestionType}" Value="Matching">
+                                                                    <Setter Property="Background" Value="#F59E0B"/>
+                                                                </DataTrigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </Border.Style>
+                                                    <TextBlock Text="{Binding QuestionType}" FontSize="11" 
+                                                               FontWeight="SemiBold" Foreground="White"/>
+                                                </Border>
+                                            </StackPanel>
+                                            
+                                            <TextBlock Text="{Binding Text}" FontSize="14" FontWeight="Medium" 
+                                                       TextWrapping="Wrap" Foreground="{DynamicResource Text.PrimaryBrush}"/>
+                                            <TextBlock Text="{Binding CorrectAnswer, StringFormat='✓ {0}'}" 
+                                                       FontSize="12" Foreground="#10B981" Margin="0,6,0,0"/>
+                                        </StackPanel>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
+                </Border>
 
-                <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Right">
+                <!-- Action Buttons -->
+                <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,15,0,0">
                     <Button Content="Cancel" Style="{StaticResource SecondaryButton}" 
-                            Command="{Binding CancelCommand}" Margin="0,10,10,0"/>
+                            Command="{Binding CancelCommand}" Margin="0,0,10,0"/>
                     <Button Content="Save Test" Style="{StaticResource PrimaryButton}" 
-                            Command="{Binding SaveTestCommand}" Margin="0,10,0,0"/>
+                            Command="{Binding SaveTestCommand}"/>
                 </StackPanel>
             </Grid>
         </Grid>
