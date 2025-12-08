@@ -39,23 +39,29 @@
     <Grid Margin="30">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
             <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
-        <TextBlock Grid.Row="0" FontSize="28" FontWeight="SemiBold" 
-                   Foreground="{DynamicResource Text.PrimaryBrush}" Margin="0,0,0,10">
-            <Run Text="Flashcards"/>
-            <Run Text="→ Test Name" Foreground="Gray"/>
-        </TextBlock>
+        <!-- Header and Progress -->
+        <Grid Grid.Row="0" Margin="0,0,0,20">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
 
-        <Grid Grid.Row="1" Margin="0,0,0,10">
-            <TextBlock Text="{Binding ProgressText}" HorizontalAlignment="Right" 
-                       FontSize="22" FontWeight="Bold"/>
+            <TextBlock Grid.Column="0" FontSize="24" FontWeight="Bold" 
+                       Foreground="{DynamicResource Text.PrimaryBrush}">
+                <Run Text="Flashcards"/>
+                <Run Text=" → " Foreground="Gray"/>
+                <Run Text="{Binding SessionTitle}" Foreground="Gray"/>
+            </TextBlock>
+
+            <TextBlock Grid.Column="1" Text="{Binding ProgressText}" HorizontalAlignment="Right" 
+                       VerticalAlignment="Center" FontSize="16" FontWeight="Medium" Foreground="Gray"/>
         </Grid>
 
-        <Button Grid.Row="2" Command="{Binding FlipCardCommand}" 
+        <Button Grid.Row="1" Command="{Binding FlipCardCommand}" 
                 HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch">
             <Button.Template>
                 <ControlTemplate TargetType="Button">
@@ -169,7 +175,7 @@
             </Button.Template>
         </Button>
 
-        <Grid Grid.Row="3" Margin="0,20,0,0">
+        <Grid Grid.Row="2" Margin="0,20,0,0">
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
                 <Button Content="Add to Saved" Style="{StaticResource SaveButton}" 
                         Command="{Binding AddToSavedCommand}"/>

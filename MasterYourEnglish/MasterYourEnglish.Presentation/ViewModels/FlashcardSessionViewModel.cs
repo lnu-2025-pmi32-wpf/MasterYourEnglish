@@ -54,6 +54,10 @@
         public FlashcardSessionDto CurrentFlashcard { get => this.currentFlashcard; set => this.SetProperty(ref this.currentFlashcard, value); }
 
         public string ProgressText { get => this.progressText; set => this.SetProperty(ref this.progressText, value); }
+        
+        private string sessionTitle = "Session";
+
+        public string SessionTitle { get => this.sessionTitle; set => this.SetProperty(ref this.sessionTitle, value); }
 
         public ICommand FlipCardCommand { get; }
 
@@ -69,18 +73,32 @@
             try
             {
                 this.bundleId = bundleId;
+                
+                // Fetch bundle details for the header
+                var bundle = await this.bundleService.GetBundleByIdAsync(bundleId);
+                if (bundle != null)
+                {
+                    this.SessionTitle = bundle.BundleName;
+                }
+                else
+                {
+                    this.SessionTitle = "Session";
+                }
+
                 this.sessionCards = await this.bundleService.GetFlashcardSessionAsync(bundleId);
                 this.StartSession();
             }
             catch (Exception ex)
             {
                 this.logger.LogError(ex, "Failed to load session for bundle ID: {Id}", bundleId);
+                this.SessionTitle = "Session";
             }
         }
 
         public void LoadSession(List<FlashcardSessionDto> cards)
         {
             this.bundleId = 0;
+            this.SessionTitle = "Generated Session";
             this.sessionCards = cards;
             this.logger.LogInformation("Loading session from generated cards. Card Count: {Count}", this.sessionCards.Count);
             this.StartSession();
@@ -92,6 +110,7 @@
             try
             {
                 this.bundleId = 0;
+                this.SessionTitle = "Saved Cards";
                 int userId = this.currentUserService.CurrentUser.UserId;
                 this.sessionCards = await this.flashcardService.GetSavedFlashcardsForSessionAsync(userId);
                 this.StartSession();
@@ -99,6 +118,7 @@
             catch (Exception ex)
             {
                 this.logger.LogError(ex, "Failed to load session from saved flashcards.");
+                this.SessionTitle = "Session";
             }
         }
 
@@ -121,7 +141,7 @@
         private void UpdateCurrentCard()
         {
             this.CurrentFlashcard = this.sessionCards[this.currentIndex];
-            this.ProgressText = $"{this.currentIndex + 1}/{this.sessionCards.Count}";
+            this.ProgressText = $"Flashcard {this.currentIndex + 1} of {this.sessionCards.Count}";
             CommandManager.InvalidateRequerySuggested();
         }
 

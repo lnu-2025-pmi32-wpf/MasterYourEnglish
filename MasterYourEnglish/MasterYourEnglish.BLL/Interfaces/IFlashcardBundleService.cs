@@ -14,5 +14,7 @@
         Task<List<FlashcardSessionDto>> GetGeneratedSessionAsync(int userId, List<string> levels, Dictionary<int, int> topicRequests);
 
         Task<int> CreateNewBundleAsync(CreateBundleDto bundleDto, int userId);
+
+        Task<FlashcardBundleCardDto> GetBundleByIdAsync(int bundleId);
     }
 }

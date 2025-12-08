@@ -96,6 +96,14 @@
             set => this.SetProperty(ref this.progressText, value);
         }
 
+        private string sessionTitle = "Session";
+
+        public string SessionTitle
+        {
+            get => this.sessionTitle;
+            set => this.SetProperty(ref this.sessionTitle, value);
+        }
+
         public string CurrentQuestionType
         {
             get => this.currentQuestionType;
@@ -163,6 +171,16 @@
             try
             {
                 this.currentTest = await this.testService.GetTestSessionAsync(testId);
+                
+                if (this.currentTest != null)
+                {
+                    this.SessionTitle = this.currentTest.Title;
+                }
+                else
+                {
+                    this.SessionTitle = "Session";
+                }
+
                 this.currentIndex = 0;
                 this.userAnswers.Clear();
                 this.LoadCurrentQuestion();
@@ -171,12 +189,14 @@
             catch (Exception ex)
             {
                 this.logger.LogError(ex, "Failed to load test session for ID: {Id}", testId);
+                this.SessionTitle = "Session";
             }
         }
 
         public void LoadTest(TestSessionDto test)
         {
             this.currentTest = test;
+            this.SessionTitle = test.Title;
             this.logger.LogInformation("Loading test session from generated test. Question Count: {Count}", test.Questions.Count);
 
             this.currentIndex = 0;

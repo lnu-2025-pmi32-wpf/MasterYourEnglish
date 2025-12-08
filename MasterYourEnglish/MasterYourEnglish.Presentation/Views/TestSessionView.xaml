@@ -67,8 +67,11 @@
             </Grid.ColumnDefinitions>
             
             <StackPanel Grid.Column="0">
-                <TextBlock Text="Test Session" FontSize="24" FontWeight="Bold" 
-                           Foreground="{DynamicResource Text.PrimaryBrush}"/>
+                <TextBlock FontSize="24" FontWeight="Bold" Foreground="{DynamicResource Text.PrimaryBrush}">
+                    <Run Text="Tests"/>
+                    <Run Text=" → " Foreground="Gray"/>
+                    <Run Text="{Binding SessionTitle}" Foreground="Gray"/>
+                </TextBlock>
             </StackPanel>
             
             <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">

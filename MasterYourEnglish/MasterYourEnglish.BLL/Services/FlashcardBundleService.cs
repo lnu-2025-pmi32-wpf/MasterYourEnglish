@@ -237,5 +237,33 @@
                 throw;
             }
         }
+
+        public async Task<FlashcardBundleCardDto> GetBundleByIdAsync(int bundleId)
+        {
+            this.logger.LogInformation("Getting bundle DTO for ID: {BundleId}", bundleId);
+            try
+            {
+                var bundle = await this.bundleRepository.GetFlashcardBundleWithDetailsAsync(bundleId);
+                if (bundle == null)
+                {
+                    this.logger.LogWarning("Bundle ID {BundleId} not found.", bundleId);
+                    return null;
+                }
+
+                return new FlashcardBundleCardDto
+                {
+                    BundleId = bundle.FlashcardsBundleId,
+                    BundleName = bundle.Title,
+                    CategoryName = bundle.Topic?.Name ?? "General",
+                    DifficultyLevel = bundle.DifficultyLevel ?? "N/A",
+                    Description = bundle.Description ?? string.Empty,
+                };
+            }
+            catch (Exception ex)
+            {
+                this.logger.LogError(ex, "Error getting bundle DTO for ID {BundleId}", bundleId);
+                throw;
+            }
+        }
     }
 }
