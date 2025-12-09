@@ -36,7 +36,7 @@
             this.serviceProvider = serviceProvider;
 
             this.Topics = new ObservableCollection<TopicSelectionViewModel>();
-            this.Levels = new List<string> { "A1", "A2", "B1", "B2", "C1" };
+            this.Levels = new List<string> { "A1", "A2", "B1", "B2", "C1", "C2" };
             this.selectedMinLevel = this.Levels.First();
             this.selectedMaxLevel = this.Levels.Last();
 
@@ -101,6 +101,7 @@
             if (minIndex > maxIndex)
             {
                 this.logger.LogWarning("Generation stopped: Minimum level ({Min}) is higher than maximum level ({Max}).", this.selectedMinLevel, this.selectedMaxLevel);
+                // Optionally show message to user
                 return;
             }
 

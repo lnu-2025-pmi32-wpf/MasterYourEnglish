@@ -10,38 +10,96 @@
              Background="{DynamicResource App.BackgroundBrush}">
 
     <UserControl.Resources>
-        <Style TargetType="TextBlock" x:Key="LabelStyle">
-            <Setter Property="FontSize" Value="16"/>
+        <!-- Section Card Style -->
+        <Style x:Key="SectionCard" TargetType="Border">
+            <Setter Property="Background" Value="{DynamicResource Sidebar.BackgroundBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource Border.PrimaryBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="Padding" Value="20"/>
+        </Style>
+
+        <!-- Section Header Style -->
+        <Style x:Key="SectionHeader" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="18"/>
             <Setter Property="FontWeight" Value="SemiBold"/>
-            <Setter Property="Margin" Value="0,0,0,5"/>
+            <Setter Property="Foreground" Value="{DynamicResource Text.PrimaryBrush}"/>
+            <Setter Property="Margin" Value="0,0,0,15"/>
+        </Style>
+
+        <!-- Form Label Style -->
+        <Style x:Key="FormLabel" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="FontWeight" Value="Medium"/>
+            <Setter Property="Margin" Value="0,0,0,6"/>
             <Setter Property="Foreground" Value="{DynamicResource Text.PrimaryBrush}"/>
         </Style>
-        <Style TargetType="TextBox">
-            <Setter Property="FontSize" Value="16"/>
-            <Setter Property="Padding" Value="8"/>
-            <Setter Property="Background" Value="{DynamicResource Sidebar.BackgroundBrush}"/>
-            <Setter Property="BorderThickness" Value="1"/>
+
+        <!-- Form Input Style -->
+        <Style x:Key="FormInput" TargetType="TextBox">
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="Padding" Value="12,8"/>
+            <Setter Property="Background" Value="{DynamicResource App.BackgroundBrush}"/>
             <Setter Property="BorderBrush" Value="{DynamicResource Border.PrimaryBrush}"/>
-            <Setter Property="Margin" Value="0,0,0,15"/>
-        </Style>
-        <Style TargetType="ComboBox">
-            <Setter Property="FontSize" Value="16"/>
-            <Setter Property="Padding" Value="8"/>
-            <Setter Property="Background" Value="{DynamicResource Sidebar.BackgroundBrush}"/>
             <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="BorderBrush" Value="{DynamicResource Border.PrimaryBrush}"/>
-            <Setter Property="Margin" Value="0,0,0,15"/>
+            <Setter Property="Margin" Value="0,0,0,12"/>
+            <Setter Property="Foreground" Value="{DynamicResource Text.PrimaryBrush}"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
         </Style>
-        <Style TargetType="Button" x:Key="PrimaryButton">
-            <Setter Property="FontSize" Value="18"/>
-            <Setter Property="Padding" Value="10"/>
+
+        <!-- Form ComboBox Style -->
+        <Style x:Key="FormComboBox" TargetType="ComboBox">
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="Padding" Value="12,10"/>
+            <Setter Property="Background" Value="{DynamicResource App.BackgroundBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource Border.PrimaryBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Margin" Value="0,0,0,12"/>
+        </Style>
+
+        <!-- Primary Button Style -->
+        <Style x:Key="PrimaryButton" TargetType="Button">
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Padding" Value="20,12"/>
             <Setter Property="Background" Value="{DynamicResource Accent.PrimaryBrush}"/>
-            <Setter Property="Foreground" Value="{DynamicResource Text.OnAccentBrush}"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderThickness" Value="0"/>
             <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="ButtonBorder" 
+                                Background="{TemplateBinding Background}" 
+                                CornerRadius="6" 
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="ButtonBorder" Property="Opacity" Value="0.9"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
         </Style>
-        <Style TargetType="Button" x:Key="SecondaryButton" BasedOn="{StaticResource PrimaryButton}">
-            <Setter Property="Background" Value="Gray"/>
+
+        <!-- Secondary Button Style -->
+        <Style x:Key="SecondaryButton" TargetType="Button" BasedOn="{StaticResource PrimaryButton}">
+            <Setter Property="Background" Value="#6B7280"/>
         </Style>
+
+        <!-- Topic Item Style -->
+        <Style x:Key="TopicItemBorder" TargetType="Border">
+            <Setter Property="Background" Value="{DynamicResource App.BackgroundBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource Border.PrimaryBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="6"/>
+            <Setter Property="Padding" Value="15,10"/>
+            <Setter Property="Margin" Value="0,0,0,8"/>
+        </Style>
+
     </UserControl.Resources>
 
     <Grid Margin="30">
@@ -50,59 +108,93 @@
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
-        <TextBlock Grid.Row="0" Text="Generate Bundle"
-                   FontSize="28" FontWeight="SemiBold"
-                   Foreground="{DynamicResource Text.PrimaryBrush}"
-                   Margin="0,0,0,20"/>
+        <!-- Page Header -->
+        <StackPanel Grid.Row="0" Margin="0,0,0,25">
+            <TextBlock Text="Generate Flashcards Session"
+                       FontSize="28" FontWeight="Bold"
+                       Foreground="{DynamicResource Text.PrimaryBrush}"/>
+            <TextBlock Text="Auto-generate a session based on topics and difficulty"
+                       FontSize="14" Foreground="Gray" Margin="0,5,0,0"/>
+        </StackPanel>
 
         <Grid Grid.Row="1">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="2*"/>
                 <ColumnDefinition Width="1*"/>
+                <ColumnDefinition Width="1.5*"/>
             </Grid.ColumnDefinitions>
 
-            <Grid Grid.Column="0" Margin="0,0,20,0">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="*"/>
-                </Grid.RowDefinitions>
-                <TextBlock Text="Number of cards per topic:" Style="{StaticResource LabelStyle}"/>
+            <!-- Left Column: Settings -->
+            <StackPanel Grid.Column="0" Margin="0,0,20,0">
+                <Border Style="{StaticResource SectionCard}" Margin="0,0,0,20">
+                    <StackPanel>
+                        <TextBlock Text="⚙️ Configuration" Style="{StaticResource SectionHeader}"/>
 
-                <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
-                    <ItemsControl ItemsSource="{Binding Topics}">
-                        <ItemsControl.ItemTemplate>
-                            <DataTemplate>
-                                <Grid Margin="0,0,0,10">
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="100"/>
-                                    </Grid.ColumnDefinitions>
-                                    <TextBlock Grid.Column="0" Text="{Binding Name}" 
-                                               FontSize="16" VerticalAlignment="Center"/>
-                                    <TextBox Grid.Column="1" Text="{Binding CardCount}" 
-                                             FontSize="16" Padding="5" TextAlignment="Center"/>
-                                </Grid>
-                            </DataTemplate>
-                        </ItemsControl.ItemTemplate>
-                    </ItemsControl>
-                </ScrollViewer>
-            </Grid>
+                        <TextBlock Text="Minimum English Level" Style="{StaticResource FormLabel}"/>
+                        <ComboBox ItemsSource="{Binding Levels}" 
+                                  SelectedItem="{Binding SelectedMinLevel}"
+                                  Style="{StaticResource FormComboBox}"/>
 
-            <StackPanel Grid.Column="1" Margin="20,0,0,0">
-                <TextBlock Text="Min English Level:" Style="{StaticResource LabelStyle}"/>
-                <ComboBox ItemsSource="{Binding Levels}" 
-                          SelectedItem="{Binding SelectedMinLevel}"/>
+                        <TextBlock Text="Maximum English Level" Style="{StaticResource FormLabel}"/>
+                        <ComboBox ItemsSource="{Binding Levels}" 
+                                  SelectedItem="{Binding SelectedMaxLevel}"
+                                  Style="{StaticResource FormComboBox}"/>
+                    </StackPanel>
+                </Border>
 
-                <TextBlock Text="Max English Level:" Style="{StaticResource LabelStyle}"/>
-                <ComboBox ItemsSource="{Binding Levels}" 
-                          SelectedItem="{Binding SelectedMaxLevel}"/>
-
-                <Button Content="Generate" Style="{StaticResource PrimaryButton}" 
-                        Command="{Binding GenerateCommand}" Margin="0,30,0,0"/>
-
+                <!-- Action Buttons -->
+                <Button Content="Generate Session" Style="{StaticResource PrimaryButton}" 
+                        Command="{Binding GenerateCommand}" Margin="0,0,0,10"/>
                 <Button Content="Cancel" Style="{StaticResource SecondaryButton}" 
-                        Command="{Binding CancelCommand}" Margin="0,10,0,0"/>
+                        Command="{Binding CancelCommand}"/>
             </StackPanel>
+
+            <!-- Right Column: Topics List -->
+            <Border Grid.Column="1" Style="{StaticResource SectionCard}">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+
+                    <StackPanel Grid.Row="0" Margin="0,0,0,15">
+                        <TextBlock Text="📚 Select Topics &amp; Quantities" Style="{StaticResource SectionHeader}" Margin="0,0,0,5"/>
+                        <TextBlock Text="Enter the number of cards you want for each topic (leave 0 to skip)." 
+                                   FontSize="13" Foreground="Gray"/>
+                    </StackPanel>
+
+                    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Padding="0,0,5,0">
+                        <ItemsControl ItemsSource="{Binding Topics}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Border Style="{StaticResource TopicItemBorder}">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="80"/>
+                                            </Grid.ColumnDefinitions>
+                                            
+                                            <!-- Topic Name -->
+                                            <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                                                <TextBlock Text="{Binding Name}" FontSize="15" FontWeight="SemiBold" 
+                                                           Foreground="{DynamicResource Text.PrimaryBrush}"/>
+                                            </StackPanel>
+                                            
+                                            <!-- Label -->
+                                            <TextBlock Grid.Column="1" Text="Cards:" FontSize="13" Foreground="Gray"
+                                                       VerticalAlignment="Center" Margin="10,0,10,0"/>
+
+                                            <!-- Count Input -->
+                                            <TextBox Grid.Column="2" Text="{Binding CardCount, UpdateSourceTrigger=PropertyChanged}" 
+                                                     Style="{StaticResource FormInput}" Margin="0"/>
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
+                </Grid>
+            </Border>
         </Grid>
     </Grid>
 </UserControl>
