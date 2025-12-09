@@ -250,22 +250,47 @@
             }
         }
 
-        public async Task<List<TestSessionDto>> GetGeneratedTestSessionAsync(int userId, List<string> levels, Dictionary<int, int> topicRequests)
+        public async Task<List<TestSessionDto>> GetGeneratedTestSessionAsync(int userId, List<string> levels, List<TestGenerationRequest> requests)
         {
             this.logger.LogInformation("Generating test session for UserID {UserId}", userId);
             try
             {
                 var allQuestions = new List<Question>();
 
-                foreach (var req in topicRequests)
+                foreach (var req in requests)
                 {
-                    var questions = await this.questionRepository.FindAsync(x =>
-                        x.TopicId == req.Key &&
-                        levels.Contains(x.DifficultyLevel) &&
-                        x.CreatedBy == null);
+                    if (req.SingleChoiceCount > 0)
+                    {
+                        var singleQuestions = await this.questionRepository.FindAsync(x =>
+                            x.TopicId == req.TopicId &&
+                            levels.Contains(x.DifficultyLevel) &&
+                            (x.QuestionType == "SingleChoice" || x.QuestionType == null) &&
+                            x.CreatedBy == null);
+                        
+                        allQuestions.AddRange(singleQuestions.OrderBy(x => Guid.NewGuid()).Take(req.SingleChoiceCount));
+                    }
 
-                    var taken = questions.OrderBy(x => Guid.NewGuid()).Take(req.Value).ToList();
-                    allQuestions.AddRange(taken);
+                    if (req.MultipleChoiceCount > 0)
+                    {
+                        var multipleQuestions = await this.questionRepository.FindAsync(x =>
+                            x.TopicId == req.TopicId &&
+                            levels.Contains(x.DifficultyLevel) &&
+                            x.QuestionType == "MultipleChoice" &&
+                            x.CreatedBy == null);
+
+                        allQuestions.AddRange(multipleQuestions.OrderBy(x => Guid.NewGuid()).Take(req.MultipleChoiceCount));
+                    }
+
+                    if (req.MatchingCount > 0)
+                    {
+                        var matchingQuestions = await this.questionRepository.FindAsync(x =>
+                            x.TopicId == req.TopicId &&
+                            levels.Contains(x.DifficultyLevel) &&
+                            x.QuestionType == "Matching" &&
+                            x.CreatedBy == null);
+
+                        allQuestions.AddRange(matchingQuestions.OrderBy(x => Guid.NewGuid()).Take(req.MatchingCount));
+                    }
                 }
 
                 if (!allQuestions.Any())
@@ -286,8 +311,14 @@
                     {
                         QuestionId = q.QuestionId,
                         Text = q.Text,
+                        QuestionType = q.QuestionType ?? "SingleChoice",
                         Options = allOptions.Where(o => o.QuestionId == q.QuestionId)
-                                            .Select(o => new TestOptionDto { OptionId = o.OptionId, Text = o.Text })
+                                            .Select(o => new TestOptionDto
+                                            {
+                                                OptionId = o.OptionId,
+                                                Text = o.Text,
+                                                MatchingText = o.MatchingText 
+                                            })
                                             .ToList(),
                     }).ToList(),
                 };

@@ -17,6 +17,6 @@
 
         Task<int> CreateNewTestAsync(CreateTestDto testDto, int userId);
 
-        Task<List<TestSessionDto>> GetGeneratedTestSessionAsync(int userId, List<string> levels, Dictionary<int, int> topicRequests);
+        Task<List<TestSessionDto>> GetGeneratedTestSessionAsync(int userId, List<string> levels, List<TestGenerationRequest> requests);
     }
 }

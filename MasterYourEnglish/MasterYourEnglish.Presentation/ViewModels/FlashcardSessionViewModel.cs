@@ -74,7 +74,6 @@
             {
                 this.bundleId = bundleId;
                 
-                // Fetch bundle details for the header
                 var bundle = await this.bundleService.GetBundleByIdAsync(bundleId);
                 if (bundle != null)
                 {

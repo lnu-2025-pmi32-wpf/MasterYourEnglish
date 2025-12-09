@@ -8,6 +8,7 @@
     using System.Windows.Input;
     using MasterYourEnglish.BLL.DTOs;
     using MasterYourEnglish.BLL.Interfaces;
+    using MasterYourEnglish.BLL.Models.DTOs;
     using MasterYourEnglish.Presentation.ViewModels.Commands;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Logging;
@@ -19,34 +20,8 @@
         private readonly ICurrentUserService currentUserService;
         private readonly ILogger<GenerateTestViewModel> logger;
         private readonly IServiceProvider serviceProvider;
-
-        public event Action<List<TestSessionDto>> TestSessionGenerated;
-
-        public event Action<string> NavigationRequested;
-
-        public ObservableCollection<TopicSelectionViewModel> Topics { get; }
-
-        public List<string> Levels { get; }
-
         private string selectedMinLevel;
-
-        public string SelectedMinLevel
-        {
-            get => this.selectedMinLevel;
-            set => this.SetProperty(ref this.selectedMinLevel, value);
-        }
-
         private string selectedMaxLevel;
-
-        public string SelectedMaxLevel
-        {
-            get => this.selectedMaxLevel;
-            set => this.SetProperty(ref this.selectedMaxLevel, value);
-        }
-
-        public ICommand GenerateCommand { get; }
-
-        public ICommand CancelCommand { get; }
 
         public GenerateTestViewModel(
             ITopicService topicService,
@@ -61,8 +36,8 @@
             this.logger = logger;
             this.serviceProvider = serviceProvider;
 
-            this.Topics = new ObservableCollection<TopicSelectionViewModel>();
-            this.Levels = new List<string> { "A1", "A2", "B1", "B2", "C1" };
+            this.Topics = new ObservableCollection<TestTopicSelectionViewModel>();
+            this.Levels = new List<string> { "A1", "A2", "B1", "B2", "C1", "C2" };
             this.selectedMinLevel = this.Levels.First();
             this.selectedMaxLevel = this.Levels.Last();
 
@@ -71,6 +46,30 @@
 
             this.logger.LogInformation("GenerateTestViewModel initialized.");
         }
+
+        public event Action<List<TestSessionDto>> TestSessionGenerated;
+
+        public event Action<string> NavigationRequested;
+
+        public ObservableCollection<TestTopicSelectionViewModel> Topics { get; }
+
+        public List<string> Levels { get; }
+
+        public string SelectedMinLevel
+        {
+            get => this.selectedMinLevel;
+            set => this.SetProperty(ref this.selectedMinLevel, value);
+        }
+
+        public string SelectedMaxLevel
+        {
+            get => this.selectedMaxLevel;
+            set => this.SetProperty(ref this.selectedMaxLevel, value);
+        }
+
+        public ICommand GenerateCommand { get; }
+
+        public ICommand CancelCommand { get; }
 
         public async Task LoadDataAsync()
         {
@@ -81,8 +80,7 @@
                 this.Topics.Clear();
                 foreach (var dto in topicDtos)
                 {
-                    var topicLogger = this.serviceProvider.GetRequiredService<ILogger<TopicSelectionViewModel>>();
-                    this.Topics.Add(new TopicSelectionViewModel(dto, topicLogger));
+                    this.Topics.Add(new TestTopicSelectionViewModel(dto));
                 }
 
                 this.logger.LogInformation("Loaded {Count} topics successfully.", topicDtos.Count);
@@ -111,11 +109,18 @@
 
             var selectedLevels = this.Levels.Skip(minIndex).Take(maxIndex - minIndex + 1).ToList();
 
-            var topicRequests = this.Topics
-                .Where(t => t.CardCount > 0)
-                .ToDictionary(t => t.TopicId, t => t.CardCount);
+            var requests = this.Topics
+                .Where(t => t.TotalCount > 0)
+                .Select(t => new TestGenerationRequest
+                {
+                    TopicId = t.TopicId,
+                    SingleChoiceCount = t.SingleChoiceCount,
+                    MultipleChoiceCount = t.MultipleChoiceCount,
+                    MatchingCount = t.MatchingCount
+                })
+                .ToList();
 
-            if (topicRequests.Count == 0)
+            if (requests.Count == 0)
             {
                 this.logger.LogWarning("Generation failed: No topics selected or question count is zero.");
                 return;
@@ -125,13 +130,13 @@
                 "Generating test session with levels {Min} to {Max} and {TopicCount} topics.",
                 this.selectedMinLevel,
                 this.selectedMaxLevel,
-                topicRequests.Count);
+                requests.Count);
 
             try
             {
                 int userId = this.currentUserService.CurrentUser.UserId;
 
-                List<TestSessionDto> generatedSession = await this.testService.GetGeneratedTestSessionAsync(userId, selectedLevels, topicRequests);
+                List<TestSessionDto> generatedSession = await this.testService.GetGeneratedTestSessionAsync(userId, selectedLevels, requests);
 
                 if (generatedSession != null && generatedSession.Any())
                 {
@@ -148,5 +153,41 @@
                 this.logger.LogError(ex, "Failed to generate test session.");
             }
         }
+    }
+
+    public class TestTopicSelectionViewModel : ViewModelBase
+    {
+        private int singleChoiceCount;
+        private int multipleChoiceCount;
+        private int matchingCount;
+
+        public TestTopicSelectionViewModel(TopicDto topic)
+        {
+            this.TopicId = topic.TopicId;
+            this.Name = topic.Name;
+        }
+
+        public int TopicId { get; }
+        public string Name { get; }
+
+        public int SingleChoiceCount
+        {
+            get => this.singleChoiceCount;
+            set { this.SetProperty(ref this.singleChoiceCount, value); this.OnPropertyChanged(nameof(this.TotalCount)); }
+        }
+
+        public int MultipleChoiceCount
+        {
+            get => this.multipleChoiceCount;
+            set { this.SetProperty(ref this.multipleChoiceCount, value); this.OnPropertyChanged(nameof(this.TotalCount)); }
+        }
+
+        public int MatchingCount
+        {
+            get => this.matchingCount;
+            set { this.SetProperty(ref this.matchingCount, value); this.OnPropertyChanged(nameof(this.TotalCount)); }
+        }
+
+        public int TotalCount => this.SingleChoiceCount + this.MultipleChoiceCount + this.MatchingCount;
     }
 }

@@ -116,9 +116,6 @@
             }
         }
 
-        /// <summary>
-        /// Display-friendly question type name with spaces.
-        /// </summary>
         public string DisplayQuestionType
         {
             get
@@ -217,8 +214,6 @@
             this.QuestionText = q.Text;
             this.CurrentQuestionType = q.QuestionType ?? "SingleChoice";
             this.CurrentOptions = q.Options;
-
-            // Update selectable options for checkbox-based selection
             this.SelectableOptions.Clear();
             foreach (var opt in q.Options)
             {
@@ -229,12 +224,9 @@
                     IsSelected = false,
                 });
             }
-
-            // Populate matching pairs for matching questions
             this.MatchingPairs.Clear();
             if (this.IsMatching)
             {
-                // Get all right-side options (MatchingText) and shuffle them
                 var allMatches = q.Options
                     .Where(o => !string.IsNullOrWhiteSpace(o.MatchingText))
                     .Select(o => o.MatchingText)
@@ -260,7 +252,6 @@
             this.SelectedOption = null;
             this.ProgressText = $"Question {this.currentIndex + 1} of {this.currentTest.Questions.Count}";
 
-            // Notify property changed for IsSingleChoice/IsMultipleChoice
             this.OnPropertyChanged(nameof(this.IsSingleChoice));
             this.OnPropertyChanged(nameof(this.IsMultipleChoice));
             this.OnPropertyChanged(nameof(this.IsMatching));
@@ -281,10 +272,6 @@
             this.logger.LogDebug("Recorded {Count} answers for question ID {QuestionId}", selectedIds.Count, qId);
         }
 
-        /// <summary>
-        /// Records matching answers. If ALL pairs are correct, records the first option ID as the answer (counts as correct).
-        /// Otherwise records -1 (counts as incorrect).
-        /// </summary>
         public void RecordMatchingAnswers()
         {
             var qId = this.currentTest.Questions[this.currentIndex].QuestionId;
@@ -292,13 +279,11 @@
 
             if (allCorrect && this.MatchingPairs.Count > 0)
             {
-                // All correct - record the first option's ID to indicate correct answer
                 this.userAnswers[qId] = new List<int> { this.MatchingPairs.First().OptionId };
                 this.logger.LogDebug("All matching pairs correct for question ID {QuestionId}", qId);
             }
             else
             {
-                // Not all correct - record -1 to indicate wrong answer
                 this.userAnswers[qId] = new List<int> { -1 };
                 this.logger.LogDebug("Matching pairs incorrect for question ID {QuestionId}. Correct: {Correct}/{Total}", 
                     qId, this.MatchingPairs.Count(p => p.IsCorrect), this.MatchingPairs.Count);
@@ -307,7 +292,6 @@
 
         private void OnNext()
         {
-            // For multiple choice, record answers before moving
             if (this.IsMultipleChoice)
             {
                 this.RecordMultipleAnswers();
@@ -334,7 +318,6 @@
                 return;
             }
 
-            // Record current question's answers before submit
             if (this.IsMultipleChoice)
             {
                 this.RecordMultipleAnswers();
@@ -349,7 +332,6 @@
             {
                 int userId = this.currentUserService.CurrentUser.UserId;
 
-                // Convert to single answer format for backward compatibility
                 var singleAnswers = this.userAnswers.ToDictionary(
                     kvp => kvp.Key,
                     kvp => kvp.Value.FirstOrDefault());
