@@ -10,25 +10,68 @@
              Background="{DynamicResource App.BackgroundBrush}">
 
     <UserControl.Resources>
-        <Style TargetType="TextBlock" x:Key="LabelStyle">
+        <!-- Section Card Style -->
+        <Style x:Key="SectionCard" TargetType="Border">
+            <Setter Property="Background" Value="{DynamicResource Sidebar.BackgroundBrush}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource Border.PrimaryBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="Padding" Value="30"/>
+        </Style>
+
+        <!-- Section Header Style -->
+        <Style x:Key="SectionHeader" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="18"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Foreground" Value="{DynamicResource Text.PrimaryBrush}"/>
+            <Setter Property="Margin" Value="0,0,0,20"/>
+        </Style>
+
+        <!-- Form Label Style -->
+        <Style x:Key="FormLabel" TargetType="TextBlock">
             <Setter Property="FontSize" Value="14"/>
-            <Setter Property="Margin" Value="0,0,0,5"/>
+            <Setter Property="FontWeight" Value="Medium"/>
+            <Setter Property="Margin" Value="0,0,0,6"/>
             <Setter Property="Foreground" Value="{DynamicResource Text.PrimaryBrush}"/>
         </Style>
-        <Style TargetType="TextBox">
-            <Setter Property="FontSize" Value="16"/>
-            <Setter Property="Padding" Value="8"/>
-            <Setter Property="Background" Value="{DynamicResource Sidebar.BackgroundBrush}"/>
-            <Setter Property="BorderThickness" Value="1"/>
+
+        <!-- Form Input Style -->
+        <Style x:Key="FormInput" TargetType="TextBox">
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="Padding" Value="12,10"/>
+            <Setter Property="Background" Value="{DynamicResource App.BackgroundBrush}"/>
             <Setter Property="BorderBrush" Value="{DynamicResource Border.PrimaryBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
             <Setter Property="Margin" Value="0,0,0,15"/>
+            <Setter Property="Foreground" Value="{DynamicResource Text.PrimaryBrush}"/>
         </Style>
-        <Style TargetType="Button" x:Key="PrimaryButton">
-            <Setter Property="FontSize" Value="18"/>
-            <Setter Property="Padding" Value="10"/>
+
+        <!-- Primary Button Style -->
+        <Style x:Key="PrimaryButton" TargetType="Button">
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Padding" Value="24,12"/>
             <Setter Property="Background" Value="{DynamicResource Accent.PrimaryBrush}"/>
-            <Setter Property="Foreground" Value="{DynamicResource Text.OnAccentBrush}"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderThickness" Value="0"/>
             <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="ButtonBorder" 
+                                Background="{TemplateBinding Background}" 
+                                CornerRadius="6" 
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="ButtonBorder" Property="Opacity" Value="0.9"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
         </Style>
     </UserControl.Resources>
 
@@ -38,50 +81,78 @@
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
-        <TextBlock Grid.Row="0" Text="Profile"
-                   FontSize="28" FontWeight="SemiBold"
-                   Foreground="{DynamicResource Text.PrimaryBrush}"
-                   Margin="0,0,0,20"/>
+        <!-- Page Header -->
+        <StackPanel Grid.Row="0" Margin="0,0,0,25">
+            <TextBlock Text="Profile"
+                       FontSize="28" FontWeight="Bold"
+                       Foreground="{DynamicResource Text.PrimaryBrush}"/>
+            <TextBlock Text="Manage your account settings"
+                       FontSize="14" Foreground="Gray" Margin="0,5,0,0"/>
+        </StackPanel>
 
-        <Grid Grid.Row="1">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="200"/>
-                <ColumnDefinition Width="*"/>
-            </Grid.ColumnDefinitions>
+        <!-- Content Card -->
+        <Border Grid.Row="1" Style="{StaticResource SectionCard}" VerticalAlignment="Top">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
 
-            <StackPanel Grid.Column="0" Margin="0,0,20,0">
-                <Border Width="180" Height="180" 
-                        Background="{DynamicResource Sidebar.BackgroundBrush}"
-                        BorderBrush="{DynamicResource Border.PrimaryBrush}"
-                        BorderThickness="1" CornerRadius="5"/>
+                <!-- Profile Sidebar (Image + Name) -->
+                <StackPanel Grid.Column="0" Margin="0,0,40,0" Width="220">
+                    <Border Width="200" Height="200" 
+                            Background="{DynamicResource App.BackgroundBrush}"
+                            BorderBrush="{DynamicResource Border.PrimaryBrush}"
+                            BorderThickness="1" CornerRadius="8">
+                            <!-- Placeholder for Profile Image if needed -->
+                            <TextBlock Text="👤" FontSize="48" HorizontalAlignment="Center" VerticalAlignment="Center" Opacity="0.2"/>
+                    </Border>
 
-                <TextBlock Text="{Binding FullName}" HorizontalAlignment="Center" 
-                           FontSize="18" FontWeight="SemiBold" Margin="0,10,0,0"/>
-                <TextBlock Text="{Binding Username}" HorizontalAlignment="Center" 
-                           FontSize="14" Foreground="Gray"/>
-            </StackPanel>
+                    <TextBlock Text="{Binding FullName}" HorizontalAlignment="Center" 
+                               FontSize="18" FontWeight="SemiBold" Margin="0,15,0,2"
+                               Foreground="{DynamicResource Text.PrimaryBrush}" TextWrapping="Wrap" TextAlignment="Center"/>
+                    <TextBlock Text="{Binding Username}" HorizontalAlignment="Center" 
+                               FontSize="14" Foreground="Gray"/>
+                </StackPanel>
 
-            <StackPanel Grid.Column="1" MaxWidth="600" HorizontalAlignment="Left" Margin="40,0,0,0">
-                <TextBlock Text="First Name" Style="{StaticResource LabelStyle}"/>
-                <TextBox Text="{Binding FirstName}"/>
+                <!-- Settings Form -->
+                <StackPanel Grid.Column="1" MaxWidth="600" HorizontalAlignment="Left">
+                    <TextBlock Text="👤 Personal Information" Style="{StaticResource SectionHeader}"/>
 
-                <TextBlock Text="Last Name" Style="{StaticResource LabelStyle}"/>
-                <TextBox Text="{Binding LastName}"/>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        
+                        <StackPanel Grid.Column="0" Margin="0,0,10,0">
+                            <TextBlock Text="First Name" Style="{StaticResource FormLabel}"/>
+                            <TextBox Text="{Binding FirstName}" Style="{StaticResource FormInput}"/>
+                        </StackPanel>
 
-                <TextBlock Text="Username" Style="{StaticResource LabelStyle}"/>
-                <TextBox Text="{Binding Username}" 
-                         IsReadOnly="True" 
-                         Background="{DynamicResource Sidebar.HoverBrush}"/>
+                        <StackPanel Grid.Column="1" Margin="10,0,0,0">
+                            <TextBlock Text="Last Name" Style="{StaticResource FormLabel}"/>
+                            <TextBox Text="{Binding LastName}" Style="{StaticResource FormInput}"/>
+                        </StackPanel>
+                    </Grid>
 
-                <TextBlock Text="Email" Style="{StaticResource LabelStyle}"/>
-                <TextBox Text="{Binding Email}" 
-                         IsReadOnly="True" 
-                         Background="{DynamicResource Sidebar.HoverBrush}"/>
+                    <TextBlock Text="Username" Style="{StaticResource FormLabel}"/>
+                    <TextBox Text="{Binding Username}" 
+                             IsReadOnly="True" 
+                             Style="{StaticResource FormInput}"
+                             Background="{DynamicResource Sidebar.HoverBrush}" Opacity="0.8"/>
 
-                <Button Content="Save Changes" Style="{StaticResource PrimaryButton}"
-                        Command="{Binding SaveChangesCommand}"
-                        HorizontalAlignment="Left" MinWidth="150" Margin="0,20,0,0"/>
-            </StackPanel>
-        </Grid>
+                    <TextBlock Text="Email" Style="{StaticResource FormLabel}"/>
+                    <TextBox Text="{Binding Email}" 
+                             IsReadOnly="True" 
+                             Style="{StaticResource FormInput}"
+                             Background="{DynamicResource Sidebar.HoverBrush}" Opacity="0.8"/>
+
+                    <Button Content="Save Changes" Style="{StaticResource PrimaryButton}"
+                            Command="{Binding SaveChangesCommand}"
+                            HorizontalAlignment="Left" MinWidth="160" Margin="0,10,0,0"/>
+                </StackPanel>
+            </Grid>
+        </Border>
     </Grid>
 </UserControl>
