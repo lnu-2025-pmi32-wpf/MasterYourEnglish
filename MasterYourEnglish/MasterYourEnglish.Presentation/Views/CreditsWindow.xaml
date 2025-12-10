@@ -1,0 +1,130 @@
+﻿<Window x:Class="MasterYourEnglish.Presentation.Views.CreditsWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Credits - MasterYourEnglish" 
+        Height="600" Width="500"
+        WindowStartupLocation="CenterOwner"
+        ResizeMode="NoResize"
+        Background="{DynamicResource App.BackgroundBrush}">
+
+	<Window.Resources>
+		<Style TargetType="TextBlock" x:Key="TitleStyle">
+			<Setter Property="FontSize" Value="28"/>
+			<Setter Property="FontWeight" Value="SemiBold"/>
+			<Setter Property="Foreground" Value="{DynamicResource Text.PrimaryBrush}"/>
+			<Setter Property="HorizontalAlignment" Value="Center"/>
+			<Setter Property="Margin" Value="0,0,0,8"/>
+		</Style>
+
+		<Style TargetType="TextBlock" x:Key="SubtitleStyle">
+			<Setter Property="FontSize" Value="14"/>
+			<Setter Property="Foreground" Value="Gray"/>
+			<Setter Property="HorizontalAlignment" Value="Center"/>
+			<Setter Property="Margin" Value="0,0,0,30"/>
+		</Style>
+
+		<Style TargetType="TextBlock" x:Key="SectionHeaderStyle">
+			<Setter Property="FontSize" Value="16"/>
+			<Setter Property="FontWeight" Value="Bold"/>
+			<Setter Property="Foreground" Value="{DynamicResource Accent.PrimaryBrush}"/>
+			<Setter Property="Margin" Value="0,20,0,12"/>
+		</Style>
+
+		<Style TargetType="TextBlock" x:Key="TeamMemberStyle">
+			<Setter Property="FontSize" Value="15"/>
+			<Setter Property="Foreground" Value="{DynamicResource Text.PrimaryBrush}"/>
+			<Setter Property="Margin" Value="0,6,0,0"/>
+		</Style>
+
+		<Style TargetType="TextBlock" x:Key="RoleStyle">
+			<Setter Property="FontSize" Value="13"/>
+			<Setter Property="Foreground" Value="Gray"/>
+			<Setter Property="FontStyle" Value="Italic"/>
+			<Setter Property="Margin" Value="8,0,0,0"/>
+		</Style>
+
+		<Style x:Key="PrimaryButton" TargetType="Button">
+			<Setter Property="FontSize" Value="14"/>
+			<Setter Property="FontWeight" Value="SemiBold"/>
+			<Setter Property="Padding" Value="32,12"/>
+			<Setter Property="Background" Value="{DynamicResource Accent.PrimaryBrush}"/>
+			<Setter Property="Foreground" Value="White"/>
+			<Setter Property="BorderThickness" Value="0"/>
+			<Setter Property="Cursor" Value="Hand"/>
+			<Setter Property="HorizontalAlignment" Value="Center"/>
+			<Setter Property="Margin" Value="0,30,0,0"/>
+			<Setter Property="Template">
+				<Setter.Value>
+					<ControlTemplate TargetType="Button">
+						<Border x:Name="ButtonBorder" 
+						        Background="{TemplateBinding Background}" 
+						        CornerRadius="6" 
+						        Padding="{TemplateBinding Padding}">
+							<ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+						</Border>
+						<ControlTemplate.Triggers>
+							<Trigger Property="IsMouseOver" Value="True">
+								<Setter TargetName="ButtonBorder" Property="Opacity" Value="0.9"/>
+							</Trigger>
+						</ControlTemplate.Triggers>
+					</ControlTemplate>
+				</Setter.Value>
+			</Setter>
+		</Style>
+	</Window.Resources>
+
+	<Border Padding="40">
+		<ScrollViewer VerticalScrollBarVisibility="Auto">
+			<StackPanel>
+				<!-- Header -->
+				<TextBlock Text="MasterYourEnglish" Style="{StaticResource TitleStyle}"/>
+				<TextBlock Text="Version 1.0 • 2025" Style="{StaticResource SubtitleStyle}"/>
+
+				<!-- Development Team -->
+				<TextBlock Text="Development Team" Style="{StaticResource SectionHeaderStyle}"/>
+				
+				<StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+					<TextBlock Text="•" FontSize="15" Foreground="{DynamicResource Accent.PrimaryBrush}" Margin="0,0,12,0" VerticalAlignment="Center"/>
+					<TextBlock Text="Bohdan Stetsyshyn" Style="{StaticResource TeamMemberStyle}"/>
+					<TextBlock Text="Team Lead" Style="{StaticResource RoleStyle}"/>
+				</StackPanel>
+
+				<StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+					<TextBlock Text="•" FontSize="15" Foreground="{DynamicResource Accent.PrimaryBrush}" Margin="0,0,12,0" VerticalAlignment="Center"/>
+					<TextBlock Text="Anastasia Tumak" Style="{StaticResource TeamMemberStyle}"/>
+					<TextBlock Text="Frontend Developer" Style="{StaticResource RoleStyle}"/>
+				</StackPanel>
+
+				<StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+					<TextBlock Text="•" FontSize="15" Foreground="{DynamicResource Accent.PrimaryBrush}" Margin="0,0,12,0" VerticalAlignment="Center"/>
+					<TextBlock Text="Sofia Gerus" Style="{StaticResource TeamMemberStyle}"/>
+					<TextBlock Text="Business Analyst" Style="{StaticResource RoleStyle}"/>
+				</StackPanel>
+
+				<StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+					<TextBlock Text="•" FontSize="15" Foreground="{DynamicResource Accent.PrimaryBrush}" Margin="0,0,12,0" VerticalAlignment="Center"/>
+					<TextBlock Text="Yuriy Vaidovych" Style="{StaticResource TeamMemberStyle}"/>
+					<TextBlock Text="Backend Developer" Style="{StaticResource RoleStyle}"/>
+				</StackPanel>
+
+				<StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+					<TextBlock Text="•" FontSize="15" Foreground="{DynamicResource Accent.PrimaryBrush}" Margin="0,0,12,0" VerticalAlignment="Center"/>
+					<TextBlock Text="Anna Kupyniak" Style="{StaticResource TeamMemberStyle}"/>
+					<TextBlock Text="Frontend Developer" Style="{StaticResource RoleStyle}"/>
+				</StackPanel>
+
+				<!-- Copyright -->
+				<TextBlock Text="© 2025 MasterYourEnglish Team. All rights reserved."
+				           FontSize="12"
+				           Foreground="Gray"
+				           HorizontalAlignment="Center"
+				           Margin="0,30,0,0"/>
+
+				<!-- Close Button -->
+				<Button Content="Close" 
+				        Style="{StaticResource PrimaryButton}"
+				        Click="CloseButton_Click"/>
+			</StackPanel>
+		</ScrollViewer>
+	</Border>
+</Window>
